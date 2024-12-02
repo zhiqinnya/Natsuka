@@ -1,5 +1,7 @@
 # Akile Monitor Fe
 
+![预览](https://github.com/akile-network/akile_monitor_fe/blob/main/akile_monitor.jpg?raw=true)
+
 Akile Monitor 前端开源项目，可自行修改构建
 
 
