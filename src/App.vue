@@ -6,6 +6,8 @@ import Mem from "@/components/Mem.vue";
 import NetIn from "@/components/NetIn.vue";
 import NetOut from "@/components/NetOut.vue";
 import config from '@/config'
+import axios from "axios";
+import { Message } from "@arco-design/web-vue";
 
 const area = ref([])
 const selectArea = ref('all')
@@ -58,7 +60,9 @@ const initScoket = () => {
     try {
       const message = event.data;
       const res = JSON.parse(message.replace('data: ', ''))
-      area.value = Array.from(new Set(res.map(item => item.Host.Name.slice(0, 2))))
+      if (res != null) {
+        area.value = Array.from(new Set(res.map(item => item.Host.Name.slice(0, 2))))
+      }
       data.value = res.map((host) => {
         if (!charts.value[host.Host.Name]) {
           charts.value[host.Host.Name] = {
@@ -96,6 +100,10 @@ const initScoket = () => {
 
   socket.onopen = function () {
     sendPing()
+  }
+
+  socket.onerror = function () {
+    Message.error('WebSocket连接失败')
   }
 }
 
@@ -183,6 +191,37 @@ const handleSelectHost = (host) => {
 
   selectHost.value = host
 }
+
+// 删除主机
+const deleteVisible = ref(false)
+const authSecret = ref('')
+const deleteHostName = ref('')
+
+const handleShowDelete = (name) => {
+  authSecret.value = ''
+  deleteHostName.value = name
+  deleteVisible.value = true
+}
+
+const handleDeleteHost = async () => {
+  try {
+    await axios.post(config.apiURL + '/delete', {
+      "auth_secret": authSecret.value,
+      "name": deleteHostName.value
+    })
+
+    Message.success('删除成功')
+
+    deleteVisible.value = false
+  } catch (e) {
+    Message.error('删除失败，管理密钥错误')
+  }
+}
+
+const handleClose = () => {
+  deleteVisible.value = false
+}
+
 
 </script>
 
@@ -363,8 +402,28 @@ const handleSelectHost = (host) => {
             </a-col>
           </a-row>
         </div>
+        <div class="delete-btn" @click.stop="handleShowDelete(item.Host.Name)">
+          <icon-delete />
+        </div>
       </div>
     </div>
+    <a-modal v-model:visible="deleteVisible" :footer="false" :hide-title="true" width="360px">
+      <div class="akile-modal-title">
+        <span>删除主机</span>
+        <a-button @click="handleClose">
+          <template #icon>
+            <icon-close/>
+          </template>
+        </a-button>
+      </div>
+      <div class="akile-modal-content">
+        <a-input v-model="authSecret" placeholder="请输入管理密钥"></a-input>
+        <div class="tips">提示：删除后无法恢复，请确定后再删除操作</div>
+      </div>
+      <div class="akile-modal-action">
+        <a-button type="primary" status="danger" :long="true" @click="handleDeleteHost">确认删除</a-button>
+      </div>
+    </a-modal>
     <div class="footer">Copyright © 2023-{{new Date().getFullYear()}} Akile LTD.</div>
   </div>
 </template>
@@ -459,6 +518,7 @@ a {
   padding: 10px;
 
   .monitor-item {
+    position: relative;
     margin-bottom: 12px;
     padding: 12px 24px;
     border-radius: 6px;
@@ -481,6 +541,33 @@ a {
 
     &:hover {
       background: #e7e7e730;
+
+      .delete-btn {
+        display: flex;
+      }
+    }
+
+    .delete-btn {
+      position: absolute;
+      right: 20px;
+      top: calc(50% - 16px);
+      cursor: pointer;
+      background: #ff161620;
+      border-radius: 100px;
+      width: 32px;
+      height: 32px;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      transition: .15s background-color ease-in-out;
+
+      &:hover {
+        background: #ff161630;
+      }
+
+      .arco-icon {
+        color: #ff1616;
+      }
     }
 
     .flag-icon {
@@ -653,6 +740,24 @@ a {
   margin-bottom: 30px;
   text-align: center;
   color: #565656;
+}
+
+.akile-modal-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 20px;
+}
+
+.akile-modal-content {
+  margin-bottom: 20px;
+  .tips {
+    font-size: 12px;
+    color: #333333;
+    margin-top: 10px;
+  }
 }
 
 @media screen and (max-width: 768px) {
