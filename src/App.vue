@@ -87,7 +87,8 @@ const initScoket = () => {
         }
       })
 
-      sendPing()
+      setTimeout(() => sendPing(), 1000)
+
     } catch (error) {
       console.error('解析 WebSocket 消息时出错:', error);
     }
