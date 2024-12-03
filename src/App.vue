@@ -59,7 +59,7 @@ const fetchConfig = async () => {
   try {
     const res = await axios.get('/config.json')
     socketURL.value = res.data.socket
-    apiURL.value = res.data.api
+    apiURL.value = res.data.apiURL
   } catch (e) {
     Message.error('获取配置失败')
   }
