@@ -32,5 +32,5 @@ jobs:
     - name: Upload build artifact
       uses: actions/upload-artifact@v3
       with:
-        name: akile_monitor_fe.zip
+        name: akile_monitor_fe
         path: dist/ # Replace with your actual binary file name
