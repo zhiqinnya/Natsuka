@@ -5,9 +5,11 @@ import CPU from "@/components/CPU.vue";
 import Mem from "@/components/Mem.vue";
 import NetIn from "@/components/NetIn.vue";
 import NetOut from "@/components/NetOut.vue";
-import config from '@/config'
 import axios from "axios";
 import { Message } from "@arco-design/web-vue";
+
+const socketURL = ref('')
+const apiURL = ref('')
 
 const area = ref([])
 const selectArea = ref('all')
@@ -53,8 +55,20 @@ let socket = null
 
 let nowtime = (Math.floor(Date.now() / 1000))
 
-const initScoket = () => {
-  socket = new WebSocket(config.socket);  // 替换为实际的 WebSocket 服务器 URL
+const fetchConfig = async () => {
+  try {
+    const res = await axios.get('/config.json')
+    socketURL.value = res.data.socket
+    apiURL.value = res.data.api
+  } catch (e) {
+    Message.error('获取配置失败')
+  }
+}
+
+const initScoket = async () => {
+  await fetchConfig()
+
+  socket = new WebSocket(socketURL.value);  // 替换为实际的 WebSocket 服务器 URL
 
   socket.onmessage = function(event) {
     try {
@@ -205,7 +219,7 @@ const handleShowDelete = (name) => {
 
 const handleDeleteHost = async () => {
   try {
-    await axios.post(config.apiURL + '/delete', {
+    await axios.post(apiURL.value + '/delete', {
       "auth_secret": authSecret.value,
       "name": deleteHostName.value
     })
@@ -424,7 +438,8 @@ const handleClose = () => {
         <a-button type="primary" status="danger" :long="true" @click="handleDeleteHost">确认删除</a-button>
       </div>
     </a-modal>
-    <div class="footer">Copyright © 2023-{{new Date().getFullYear()}} Akile LTD.</div>
+    <div class="footer" style="margin-top: 30px">代码开源在 <a href="https://github.com/akile-network/akile_monitor">GitHub v1.0.1</a></div>
+    <div class="footer" style="margin-bottom: 30px">Copyright © 2023-{{new Date().getFullYear()}} Akile LTD.</div>
   </div>
 </template>
 
@@ -736,10 +751,13 @@ a {
 }
 
 .footer {
-  margin-top: 15px;
-  margin-bottom: 30px;
+  line-height: 22px;
   text-align: center;
   color: #565656;
+
+  a {
+    color: rgba(var(--primary-6));
+  }
 }
 
 .akile-modal-title {
