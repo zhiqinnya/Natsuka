@@ -116,8 +116,10 @@ const initScoket = async () => {
     sendPing()
   }
 
-  socket.onerror = function () {
-    Message.error('WebSocket连接失败')
+  socket.onclose = function () {
+    Message.warning('WebSocket已断连，正在重连中...')
+
+    initScoket()
   }
 }
 
@@ -546,6 +548,11 @@ a {
 
     &.is-active {
       background: #e7e7e730;
+
+      .delete-btn {
+        display: none!important;
+      }
+
       &>.detail {
         margin-top: 15px;
         border-top: 1px solid #eeeeee;
