@@ -9,6 +9,15 @@ export const formatBytes = (bytes) => {
     return bytes.toFixed(2) + ' ' + units[i];
 }
 
+// 计算剩余天数的函数
+export const calculateRemainingDays = (expireTime) => {
+    if (!expireTime) return null
+    const expireDate = new Date(expireTime)
+    const today = new Date()
+    const diffTime = expireDate - today
+    return Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+}
+
 export const formatBandwithBytes = (bytes) => {
     const units = ['bps', 'Kbps', 'Mbps', 'Gbps', 'Tbps', 'Pbps', 'Ebps', 'Zbps', 'Ybps'];
     let i = 0;

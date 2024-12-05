@@ -8,7 +8,7 @@ import NetOut from "@/components/NetOut.vue";
 import axios from "axios";
 import { Message } from "@arco-design/web-vue";
 import StatsCard from "@/components/StatsCard.vue";
-import {formatBytes, formatTimeStamp, formatUptime} from '@/utils/utils'
+import {formatBytes, formatTimeStamp, formatUptime, calculateRemainingDays} from '@/utils/utils'
 
 const socketURL = ref('')
 const apiURL = ref('')
@@ -165,12 +165,13 @@ const sendPing = () => {
   socket.send('ping')
 }
 
-onMounted(() => {
-  initScoket()
-
+onMounted(async() => {
   if (dark.value) {
     document.body.setAttribute('arco-theme', 'dark')
   }
+
+  await initScoket()
+  handleFetchHostInfo()
 })
 
 const progressStatus = (value) => {
@@ -226,8 +227,75 @@ const handleClose = () => {
   deleteVisible.value = false
 }
 
+const hostInfo = ref({})
+
+const handleFetchHostInfo = async () => {
+  try {
+    const res = await axios.get(apiURL.value + '/info')
+    res.data.forEach((item) => {
+      hostInfo.value[item.name] = item
+    })
+  } catch (e) {
+    // Message.error('删除失败，管理密钥错误')
+  }
+}
+
 const handleChangeType = (value) => {
   type.value = value
+}
+
+const editHostName = ref('')
+const duetime = ref(0)
+const buy_url = ref('')
+const seller = ref('')
+const price = ref('')
+
+const editVisible = ref(false)
+
+const handleShowEdit = (name) => {
+  if (!hostInfo.value[name]) {
+    editHostName.value = name
+    duetime.value = 0
+    buy_url.value = ''
+    seller.value = ''
+    price.value = ''
+    editVisible.value = true
+    authSecret.value = ''
+    return
+  }
+
+  editHostName.value = name
+  duetime.value = hostInfo.value[name].due_time
+  buy_url.value = hostInfo.value[name].buy_url
+  seller.value = hostInfo.value[name].seller
+  price.value = hostInfo.value[name].price
+  editVisible.value = true
+  authSecret.value = ''
+
+}
+
+const handleEditHost = () => {
+  try {
+    axios.post(apiURL.value + '/info', {
+      "name": editHostName.value,
+      "due_time": new Date(duetime.value).getTime(),
+      "buy_url": buy_url.value,
+      "seller": seller.value,
+      "auth_secret": authSecret.value,
+      "price": price.value
+    })
+
+    Message.success('更新成功')
+
+    editVisible.value = false
+  } catch (e) {
+    Message.error('更新失败，管理密钥错误')
+  }
+
+}
+
+const handleEditClose = () => {
+  editVisible.value = false
 }
 
 provide('handleChangeType', handleChangeType)
@@ -286,11 +354,6 @@ provide('handleChangeType', handleChangeType)
           <div class="monitor-item-value">{{(item.State.MemUsed / item.Host.MemTotal * 100).toFixed(2) + '%'}}</div>
           <a-progress class="monitor-item-progress" :status="progressStatus(item.State.MemUsed / item.Host.MemTotal * 100)" :percent="item.State.MemUsed / item.Host.MemTotal" :show-text="false" style="width: 60px" />
         </div>
-        <div class="mem">
-          <div class="monitor-item-title">虚拟内存(Swap)</div>
-          <div class="monitor-item-value">{{item.Host.SwapTotal === 0 ? (0).toFixed(2)+'%' : (item.State.SwapUsed / item.Host.SwapTotal * 100).toFixed(2) + '%'}}</div>
-          <a-progress class="monitor-item-progress" :status="progressStatus(item.State.SwapUsed / item.Host.SwapTotal * 100)" :percent="item.Host.SwapTotal === 0 ? (0) : (item.State.SwapUsed / item.Host.SwapTotal)" :show-text="false" style="width: 60px" />
-        </div>
         <div class="network">
           <div class="monitor-item-title">网络速度（IN|OUT）</div>
           <div class="monitor-item-value">{{`${formatBytes(item.State.NetInSpeed)}/s | ${formatBytes(item.State.NetOutSpeed)}/s`}}</div>
@@ -298,6 +361,10 @@ provide('handleChangeType', handleChangeType)
         <div class="average">
           <div class="monitor-item-title">负载平均值(1|5|15)</div>
           <div class="monitor-item-value">{{`${item.State.Load1} | ${item.State.Load5} | ${item.State.Load15}`}}</div>
+        </div>
+        <div class="uptime" style="width: 120px;">
+          <div class="monitor-item-title">剩余时间</div>
+          <div class="monitor-item-value">{{hostInfo[item.Host.Name] ? calculateRemainingDays(hostInfo[item.Host.Name].due_time) + '天' : '-'}}</div>
         </div>
         <div class="uptime">
           <div class="monitor-item-title">上报时间</div>
@@ -366,6 +433,24 @@ provide('handleChangeType', handleChangeType)
                   <div class="name">上报时间</div>
                   <div class="value">{{formatTimeStamp(item.TimeStamp)}}</div>
                 </div>
+                <div class="detail-item" v-if="hostInfo[item.Host.Name]">
+                  <div class="name">商家名称</div>
+                  <div class="value">{{hostInfo[item.Host.Name].seller}}</div>
+                </div>
+                <div class="detail-item" v-if="hostInfo[item.Host.Name]">
+                  <div class="name">主机价格</div>
+                  <div class="value">{{hostInfo[item.Host.Name].price}}</div>
+                </div>
+                <div class="detail-item" v-if="hostInfo[item.Host.Name]">
+                  <div class="name">到期时间</div>
+                  <div class="value">{{moment(hostInfo[item.Host.Name].due_time).format('YYYY-MM-DD')}}</div>
+                </div>
+                <div class="detail-item" v-if="hostInfo[item.Host.Name]">
+                  <div class="name">购买链接</div>
+                  <div class="value">
+                    <a style="color: #0077ff" :href="hostInfo[item.Host.Name].buy_url" target="_blank" @click.stop="() => {}">{{hostInfo[item.Host.Name].buy_url}}</a>
+                  </div>
+                </div>
               </div>
             </a-col>
             <a-col :span="14" :xs="24" :sm="24" :md="14" :lg="14" :sl="14">
@@ -385,6 +470,9 @@ provide('handleChangeType', handleChangeType)
               </a-row>
             </a-col>
           </a-row>
+        </div>
+        <div class="edit-btn" @click.stop="handleShowEdit(item.Host.Name)">
+          <icon-edit />
         </div>
         <div class="delete-btn" @click.stop="handleShowDelete(item.Host.Name)">
           <icon-delete />
@@ -406,6 +494,26 @@ provide('handleChangeType', handleChangeType)
       </div>
       <div class="akile-modal-action">
         <a-button type="primary" status="danger" :long="true" @click="handleDeleteHost">确认删除</a-button>
+      </div>
+    </a-modal>
+    <a-modal v-model:visible="editVisible" :footer="false" :hide-title="true" width="360px">
+      <div class="akile-modal-title">
+        <span>编辑主机信息</span>
+        <a-button @click="handleEditClose">
+          <template #icon>
+            <icon-close/>
+          </template>
+        </a-button>
+      </div>
+      <div class="akile-modal-content">
+        <a-date-picker v-model="duetime" placeholder="请选择到期时间" style="margin-bottom: 10px;width: 100%;"></a-date-picker>
+        <a-input v-model="seller" placeholder="请输入卖家" style="margin-bottom: 10px;"></a-input>
+        <a-input v-model="price" placeholder="请输入价格" style="margin-bottom: 10px;"></a-input>
+        <a-input v-model="buy_url" placeholder="请输入购买链接" style="margin-bottom: 10px;"></a-input>
+        <a-input v-model="authSecret" placeholder="请输入管理密钥"></a-input>
+      </div>
+      <div class="akile-modal-action">
+        <a-button type="primary" :long="true" @click="handleEditHost">更新信息</a-button>
       </div>
     </a-modal>
     <div class="footer" style="margin-top: 30px">代码开源在 <a href="https://github.com/akile-network/akile_monitor">GitHub v0.0.1</a></div>
@@ -490,7 +598,8 @@ a {
     &.is-active {
       background: #e7e7e730;
 
-      .delete-btn {
+      .delete-btn,
+      .edit-btn {
         display: none!important;
       }
 
@@ -505,12 +614,27 @@ a {
     &:hover {
       background: #e7e7e730;
 
-      .delete-btn {
+      .delete-btn,
+      .edit-btn {
         display: flex;
       }
     }
 
-    .delete-btn {
+    .edit-btn {
+      right: 60px!important;
+      background: rgba(22, 131, 255, 0.13)!important;
+
+      &:hover {
+        background: rgba(22, 131, 255, 0.19)!important;
+      }
+
+      .arco-icon {
+        color: #1673ff!important;
+      }
+    }
+
+    .delete-btn,
+    .edit-btn {
       position: absolute;
       right: 20px;
       top: calc(50% - 16px);
@@ -727,6 +851,11 @@ a {
 
 body[arco-theme='dark'] {
   background-color: #111111;
+
+  .arco-modal {
+    background-color: #0e0e0e;
+    border: 1px solid rgba(255,255,255,0.05);
+  }
 
   .header {
     .logo {
