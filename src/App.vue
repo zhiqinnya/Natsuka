@@ -7,9 +7,27 @@ import NetIn from "@/components/NetIn.vue";
 import NetOut from "@/components/NetOut.vue";
 import axios from "axios";
 import { Message } from "@arco-design/web-vue";
+import StatsCard from "@/components/StatsCard.vue";
+import {formatBytes, formatTimeStamp, formatUptime} from '@/utils/utils'
 
 const socketURL = ref('')
 const apiURL = ref('')
+
+const theme = window.localStorage.getItem('theme') || 'light'
+const dark = ref(theme !== 'light')
+
+const handleChangeDark = () => {
+  dark.value = !dark.value
+
+  if (dark.value) {
+    window.localStorage.setItem('theme','dark')
+    document.body.setAttribute('arco-theme', 'dark')
+  } else {
+    // 恢复亮色主题
+    window.localStorage.setItem('theme','light')
+    document.body.removeAttribute('arco-theme');
+   }
+}
 
 const area = ref([])
 const selectArea = ref('all')
@@ -96,8 +114,8 @@ const initScoket = async () => {
 
         charts.value[host.Host.Name].cpu.push([host.TimeStamp * 1000, host.State.CPU])
         charts.value[host.Host.Name].mem.push([host.TimeStamp * 1000, host.State.MemUsed])
-        charts.value[host.Host.Name].net_in.push([host.TimeStamp * 1000, host.State.NetInSpeed])
-        charts.value[host.Host.Name].net_out.push([host.TimeStamp * 1000, host.State.NetOutSpeed])
+        charts.value[host.Host.Name].net_in.push([host.TimeStamp * 1000, host.State.NetOutSpeed])
+        charts.value[host.Host.Name].net_out.push([host.TimeStamp * 1000, host.State.NetInSpeed])
 
         return {
           ...host,
@@ -130,60 +148,11 @@ const sendPing = () => {
 
 onMounted(() => {
   initScoket()
+
+  if (dark.value) {
+    document.body.setAttribute('arco-theme', 'dark')
+  }
 })
-
-// 格式化字节单位
-const formatBytes = (bytes) => {
-  const units = ['B', 'KB', 'MB', 'GB', 'TB'];
-  let i = 0;
-  while (bytes >= 1024 && i < units.length - 1) {
-    bytes /= 1024;
-    i++;
-  }
-  return bytes.toFixed(2) + ' ' + units[i];
-}
-
-// 格式化字节单位
-const formatMem = (bytes) => {
-  const units = ['B', 'KB', 'MB', 'GB', 'TB'];
-  let i = 0;
-  while (bytes >= 1024 && i < units.length - 1) {
-    bytes /= 1024;
-    i++;
-  }
-  return bytes.toFixed(2) + ' ' + units[i];
-}
-
-// 格式化系统时间为小时:分钟:秒
-const formatTime = (seconds) => {
-  const hours = Math.floor(seconds / 3600);
-  const minutes = Math.floor((seconds % 3600) / 60);
-  const remainingSeconds = seconds % 60;
-  return `${hours}小时 ${minutes}分钟 ${remainingSeconds}秒`;
-}
-
-// 格式化时间戳为可读的日期格式
-const formatTimeStamp = (timestamp) => {
-  const date = new Date(timestamp * 1000); // 转换为毫秒
-  const year = date.getFullYear();
-  const month = ('0' + (date.getMonth() + 1)).slice(-2);
-  const day = ('0' + date.getDate()).slice(-2);
-  const hours = ('0' + date.getHours()).slice(-2);
-  const minutes = ('0' + date.getMinutes()).slice(-2);
-  const seconds = ('0' + date.getSeconds()).slice(-2);
-  return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
-}
-
-const formatUptime = (seconds) => {
-  const days = Math.floor(seconds / (24 * 3600));
-  seconds %= 24 * 3600;
-  const hours = Math.floor(seconds / 3600);
-  seconds %= 3600;
-  const minutes = Math.floor(seconds / 60);
-  const secs = seconds % 60;
-
-  return `${days}d ${hours}h ${minutes}m ${secs}s`;
-}
 
 const progressStatus = (value) => {
   if (value < 80) {
@@ -243,13 +212,21 @@ const handleClose = () => {
 
 <template>
   <div class="max-container">
-    <a class="logo" href="#">
-      <svg class="arco-icon" viewBox="0 0 48 48" fill="currentColor">
-        <path data-v-2ee6cb6b="" fill-rule="evenodd" clip-rule="evenodd" d="M42.919 11.923L25 1.577a2 2 0 00-2 0L5.081 11.923a2 2 0 00-1 1.732v20.69a2 2 0 001 1.732L23 46.423a2 2 0 002 0l17.919-10.346a2 2 0 001-1.732v-20.69a2 2 0 00-1-1.732zM30.556 9.525L38.5 14 24 23l-13.808-8.668L17.5 10l6.5 4 6.556-4.475zM22 40.441V26.286L8 17.358v7.928l8 5.464v6.227l6 3.464zm10-3.464l-6 3.464V26.286l14-8.928v8.928l-8 5.464v5.227z" fill="currentColor"></path>
-      </svg>
-      <span>Akile Monitor</span>
-      <small style="font-weight: 400;opacity: .8"> ｜ 全球节点监控</small>
-    </a>
+    <div class="header">
+      <a class="logo" href="#">
+        <svg class="arco-icon" viewBox="0 0 48 48" fill="currentColor">
+          <path data-v-2ee6cb6b="" fill-rule="evenodd" clip-rule="evenodd" d="M42.919 11.923L25 1.577a2 2 0 00-2 0L5.081 11.923a2 2 0 00-1 1.732v20.69a2 2 0 001 1.732L23 46.423a2 2 0 002 0l17.919-10.346a2 2 0 001-1.732v-20.69a2 2 0 00-1-1.732zM30.556 9.525L38.5 14 24 23l-13.808-8.668L17.5 10l6.5 4 6.556-4.475zM22 40.441V26.286L8 17.358v7.928l8 5.464v6.227l6 3.464zm10-3.464l-6 3.464V26.286l14-8.928v8.928l-8 5.464v5.227z" fill="currentColor"></path>
+        </svg>
+        <span>Akile Monitor</span>
+        <small style="font-weight: 400;opacity: .8"> ｜ 全球节点监控</small>
+      </a>
+      <a-button class="theme-btn" :shape="'round'" @click="handleChangeDark">
+        <template #icon>
+          <icon-sun-fill v-if="!dark" />
+          <icon-moon-fill v-else />
+        </template>
+      </a-button>
+    </div>
     <div class="area-tabs">
       <div class="area-tab-item" :class="selectArea === 'all' ? 'is-active' : ''" @click="handleSelectArea('all')">
         全部地区
@@ -258,49 +235,7 @@ const handleClose = () => {
         <span :class="`flag-icon flag-icon-${item.replace('UK', 'GB').toLowerCase()}`" style="margin-right: 3px;"></span> {{item}}
       </div>
     </div>
-    <div class="hero">
-      <a-row :gutter="20">
-        <a-col :span="6" :xs="24" :sm="24" :md="6" :lg="6" :sl="6">
-          <div class="hero-card">
-            <div class="title">服务器总数</div>
-            <div class="value">
-              <div class="status" style="background: #005fe7;"></div>
-              <span class="num">{{stats.total}} 台</span>
-            </div>
-          </div>
-        </a-col>
-        <a-col :span="6" :xs="24" :sm="24" :md="6" :lg="6" :sl="6">
-          <div class="hero-card">
-            <div class="title">在线服务器</div>
-            <div class="value">
-              <div class="status" style="background: #1fb416;"></div>
-              <span class="num">{{stats.online}} 台</span>
-            </div>
-          </div>
-        </a-col>
-        <a-col :span="6" :xs="24" :sm="24" :md="6" :lg="6" :sl="6">
-          <div class="hero-card">
-            <div class="title">离线服务器</div>
-            <div class="value">
-              <div class="status" style="background: #b41616;"></div>
-              <span class="num">{{stats.offline}} 台</span>
-            </div>
-          </div>
-        </a-col>
-        <a-col :span="6" :xs="24" :sm="24" :md="6" :lg="6" :sl="6">
-          <div class="hero-card">
-            <div class="title">实时带宽</div>
-            <div class="value">
-              <icon-arrow-up style="font-size: 20px;" />
-              <span style="font-size: 16px;"> {{formatBytes(stats.bandwidth_up)}}/s</span>
-
-              <icon-arrow-down style="font-size: 20px;" />
-              <span style="font-size: 16px;">{{formatBytes(stats.bandwidth_down)}}/s</span>
-            </div>
-          </div>
-        </a-col>
-      </a-row>
-    </div>
+    <StatsCard :stats="stats" />
     <div class="monitor-card">
       <div class="monitor-item" :class="selectHost === item.Host.Name ? 'is-active' : ''" v-for="(item, index) in host" @click="handleSelectHost(item.Host.Name)" :key="index">
         <div class="name">
@@ -376,7 +311,11 @@ const handleClose = () => {
                 </div>
                 <div class="detail-item">
                   <div class="name">内存使用情况</div>
-                  <div class="value">{{(item.State.MemUsed / item.Host.MemTotal * 100).toFixed(2) + '%'}} ({{formatMem(item.State.MemUsed)}} / {{formatMem(item.Host.MemTotal)}})</div>
+                  <div class="value">{{(item.State.MemUsed / item.Host.MemTotal * 100).toFixed(2) + '%'}} ({{formatBytes(item.State.MemUsed)}} / {{formatBytes(item.Host.MemTotal)}})</div>
+                </div>
+                <div class="detail-item">
+                  <div class="name">虚拟内存(Swap)</div>
+                  <div class="value">{{formatBytes(item.State.SwapUsed)}}</div>
                 </div>
                 <div class="detail-item">
                   <div class="name">网络速度（IN|OUT）</div>
@@ -445,7 +384,7 @@ const handleClose = () => {
   </div>
 </template>
 
-<style lang="scss" scoped>
+<style lang="scss">
 body {
   margin: 0;
   background-color: #fafafa;
@@ -462,6 +401,19 @@ a {
   max-width: 1440px;
 }
 
+.header {
+  margin: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  .theme-btn {
+    border: 1px solid #eeeeee!important;
+    background-color: #ffffff!important;
+    color: #333333!important;
+  }
+}
+
 .area-tabs {
   margin: 20px 10px;
 
@@ -471,7 +423,6 @@ a {
     padding: 6px 12px;
     border-radius: 6px;
     cursor: pointer;
-    transition: .14s all ease-in-out;
     border: 1px solid #e5e5e5;
     background: #ffffff;
     box-shadow: 0 2px 4px 0 rgba(133, 138, 180, 0.14);
@@ -491,44 +442,6 @@ a {
 
 }
 
-.hero {
-  margin: 30px 10px 0px 10px;
-
-  .hero-card {
-    margin-bottom: 20px;
-    padding: 12px 24px;
-    border: 1px solid #e5e5e5;
-    border-radius: 6px;
-    background: #ffffff;
-    min-height: 62px;
-    box-shadow: 0 2px 4px 0 rgba(133, 138, 180, 0.14);
-
-    .title {
-      margin-top: 6px;
-      font-size: 16px;
-      font-weight: 500;
-      margin-bottom: 14px;
-    }
-
-    .value {
-      display: flex;
-      align-items: center;
-      .status {
-        margin-right: 6px;
-        width: 8px;
-        height: 8px;
-        border-radius: 10px;
-        background: #333333;
-      }
-
-      .num {
-        font-size: 20px;
-        font-weight: 600;
-      }
-    }
-  }
-}
-
 .monitor-card {
   position: relative;
   margin: 0 auto;
@@ -544,7 +457,6 @@ a {
     background: #ffffff;
     box-shadow: 0 2px 4px 0 rgba(133, 138, 180, 0.14);
     cursor: pointer;
-    transition: .14s all ease-in-out;
 
     &.is-active {
       background: #e7e7e730;
@@ -727,7 +639,6 @@ a {
   margin-bottom: 20px;
   position: relative;
   cursor: pointer;
-  margin-left: 13px;
   line-height: 54px;
   height: 54px;
   font-size: 16px;
@@ -785,6 +696,69 @@ a {
   }
 }
 
+body[arco-theme='dark'] {
+  background-color: #111111;
+
+  .header {
+    .logo {
+      span,
+      small {
+        color: #ffffff;
+      }
+    }
+
+    .theme-btn {
+      border: 1px solid #333333!important;
+      background-color: #000000!important;
+      color: #ffffff!important;
+    }
+  }
+
+  .area-tabs {
+    .area-tab-item {
+      border-color: #333333;
+      background: #000000;
+      color: #ffffff;
+      box-shadow: none;
+
+      &.is-active {
+        background: #005fe705;
+        color: #005fe7;
+        border: 1px solid #005fe7;
+      }
+    }
+  }
+
+  .footer {
+    color: #ffffffAA;
+  }
+
+  .monitor-card {
+    .monitor-item {
+      border: 1px solid rgb(255 255 255 / 16%);
+      box-shadow: none;
+      background-color: #000000;
+      color: #ffffff;
+
+      &:hover {
+        background-color: #101010;
+      }
+
+      .detail {
+        border-color: #333333AA;
+        .detail-item-list {
+          .detail-item {
+            .name {
+              color: #999999;
+            }
+          }
+        }
+      }
+    }
+  }
+
+}
+
 @media screen and (max-width: 768px) {
   .monitor-item {
     &>div {
@@ -793,7 +767,6 @@ a {
   }
 
   .detail {
-
     .detail-item {
       .name {
         width: 25%!important;
