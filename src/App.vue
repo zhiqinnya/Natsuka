@@ -439,19 +439,19 @@ provide('handleChangeType', handleChangeType)
                   <div class="name">上报时间</div>
                   <div class="value">{{formatTimeStamp(item.TimeStamp)}}</div>
                 </div>
-                <div class="detail-item" v-if="hostInfo[item.Host.Name]">
+                <div class="detail-item" v-if="hostInfo[item.Host.Name] && hostInfo[item.Host.Name].seller">
                   <div class="name">商家名称</div>
                   <div class="value">{{hostInfo[item.Host.Name].seller}}</div>
                 </div>
-                <div class="detail-item" v-if="hostInfo[item.Host.Name]">
+                <div class="detail-item" v-if="hostInfo[item.Host.Name] && hostInfo[item.Host.Name].price">
                   <div class="name">主机价格</div>
                   <div class="value">{{hostInfo[item.Host.Name].price}}</div>
                 </div>
-                <div class="detail-item" v-if="hostInfo[item.Host.Name]">
+                <div class="detail-item" v-if="hostInfo[item.Host.Name] && hostInfo[item.Host.Name].due_time">
                   <div class="name">到期时间</div>
-                  <div class="value">{{hostInfo[item.Host.Name].due_time ? moment(hostInfo[item.Host.Name].due_time).format('YYYY-MM-DD') : '-'}}</div>
+                  <div class="value">{{moment(hostInfo[item.Host.Name].due_time).format('YYYY-MM-DD')}}</div>
                 </div>
-                <div class="detail-item" v-if="hostInfo[item.Host.Name]">
+                <div class="detail-item" v-if="hostInfo[item.Host.Name] && hostInfo[item.Host.Name].buy_url">
                   <div class="name">购买链接</div>
                   <div class="value">
                     <a style="color: #0077ff" :href="hostInfo[item.Host.Name].buy_url" target="_blank" @click.stop="() => {}">{{hostInfo[item.Host.Name].buy_url}}</a>
