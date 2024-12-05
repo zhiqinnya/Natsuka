@@ -21,13 +21,14 @@ export const calculateRemainingDays = (expireTime) => {
 }
 
 export const formatBandwithBytes = (bytes) => {
+    bytes = bytes * 8;
     const units = ['bps', 'Kbps', 'Mbps', 'Gbps', 'Tbps', 'Pbps', 'Ebps', 'Zbps', 'Ybps'];
     let i = 0;
     while (bytes >= 1024 && i < units.length - 1) {
         bytes /= 1024;
         i++;
     }
-    return (bytes*8).toFixed(2) + ' ' + units[i];
+    return (bytes).toFixed(2) + ' ' + units[i];
 }
 
 // 格式化系统时间为小时:分钟:秒
