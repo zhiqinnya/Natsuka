@@ -11,11 +11,13 @@ export const formatBytes = (bytes) => {
 
 // 计算剩余天数的函数
 export const calculateRemainingDays = (expireTime) => {
-    if (!expireTime) return null
+    if (!expireTime) {
+        return '-'
+    }
     const expireDate = new Date(expireTime)
     const today = new Date()
     const diffTime = expireDate - today
-    return Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+    return Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + '天'
 }
 
 export const formatBandwithBytes = (bytes) => {

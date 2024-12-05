@@ -203,7 +203,7 @@ const authSecret = ref('')
 const deleteHostName = ref('')
 
 const handleShowDelete = (name) => {
-  authSecret.value = ''
+  authSecret.value =  window.localStorage.getItem('auth_secret') || ''
   deleteHostName.value = name
   deleteVisible.value = true
 }
@@ -214,6 +214,8 @@ const handleDeleteHost = async () => {
       "auth_secret": authSecret.value,
       "name": deleteHostName.value
     })
+
+    window.localStorage.setItem('auth_secret', authSecret.value)
 
     Message.success('删除成功')
 
@@ -260,7 +262,7 @@ const handleShowEdit = (name) => {
     seller.value = ''
     price.value = ''
     editVisible.value = true
-    authSecret.value = ''
+    authSecret.value = window.localStorage.getItem('auth_secret') || ''
     return
   }
 
@@ -270,13 +272,13 @@ const handleShowEdit = (name) => {
   seller.value = hostInfo.value[name].seller
   price.value = hostInfo.value[name].price
   editVisible.value = true
-  authSecret.value = ''
+  authSecret.value = window.localStorage.getItem('auth_secret') || ''
 
 }
 
-const handleEditHost = () => {
+const handleEditHost = async () => {
   try {
-    axios.post(apiURL.value + '/info', {
+    await axios.post(apiURL.value + '/info', {
       "name": editHostName.value,
       "due_time": new Date(duetime.value).getTime(),
       "buy_url": buy_url.value,
@@ -285,7 +287,11 @@ const handleEditHost = () => {
       "price": price.value
     })
 
+    window.localStorage.setItem('auth_secret', authSecret.value)
+
     Message.success('更新成功')
+
+    handleFetchHostInfo()
 
     editVisible.value = false
   } catch (e) {
@@ -364,7 +370,7 @@ provide('handleChangeType', handleChangeType)
         </div>
         <div class="uptime" style="width: 120px;">
           <div class="monitor-item-title">剩余时间</div>
-          <div class="monitor-item-value">{{hostInfo[item.Host.Name] ? calculateRemainingDays(hostInfo[item.Host.Name].due_time) + '天' : '-'}}</div>
+          <div class="monitor-item-value">{{hostInfo[item.Host.Name] ? calculateRemainingDays(hostInfo[item.Host.Name].due_time) : '-'}}</div>
         </div>
         <div class="uptime">
           <div class="monitor-item-title">上报时间</div>
@@ -443,7 +449,7 @@ provide('handleChangeType', handleChangeType)
                 </div>
                 <div class="detail-item" v-if="hostInfo[item.Host.Name]">
                   <div class="name">到期时间</div>
-                  <div class="value">{{moment(hostInfo[item.Host.Name].due_time).format('YYYY-MM-DD')}}</div>
+                  <div class="value">{{hostInfo[item.Host.Name].due_time ? moment(hostInfo[item.Host.Name].due_time).format('YYYY-MM-DD') : '-'}}</div>
                 </div>
                 <div class="detail-item" v-if="hostInfo[item.Host.Name]">
                   <div class="name">购买链接</div>
@@ -489,7 +495,7 @@ provide('handleChangeType', handleChangeType)
         </a-button>
       </div>
       <div class="akile-modal-content">
-        <a-input v-model="authSecret" placeholder="请输入管理密钥"></a-input>
+        <a-input-password v-model="authSecret" placeholder="请输入管理密钥"></a-input-password>
         <div class="tips">提示：删除后无法恢复，请确定后再删除操作</div>
       </div>
       <div class="akile-modal-action">
@@ -510,7 +516,7 @@ provide('handleChangeType', handleChangeType)
         <a-input v-model="seller" placeholder="请输入卖家" style="margin-bottom: 10px;"></a-input>
         <a-input v-model="price" placeholder="请输入价格" style="margin-bottom: 10px;"></a-input>
         <a-input v-model="buy_url" placeholder="请输入购买链接" style="margin-bottom: 10px;"></a-input>
-        <a-input v-model="authSecret" placeholder="请输入管理密钥"></a-input>
+        <a-input-password v-model="authSecret" placeholder="请输入管理密钥"></a-input-password>
       </div>
       <div class="akile-modal-action">
         <a-button type="primary" :long="true" @click="handleEditHost">更新信息</a-button>
