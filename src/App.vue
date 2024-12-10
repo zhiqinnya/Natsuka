@@ -312,7 +312,7 @@ provide('handleChangeType', handleChangeType)
   <div class="max-container">
     <div class="header">
       <a class="logo" href="#">
-        <img class="arco-icon" src="https://www.locyan.cn/favicon.ico">
+        <img class="arco-icon" src="/favicon.ico">
         <span>LoCyanFrp</span>
         <small style="font-weight: 400;opacity: .8"> ｜ 节点服务器监控</small>
       </a>
@@ -520,8 +520,8 @@ provide('handleChangeType', handleChangeType)
         <a-button type="primary" :long="true" @click="handleEditHost">更新信息</a-button>
       </div>
     </a-modal>
-    <div class="footer" style="margin-top: 30px">代码开源在 <a href="https://github.com/akile-network/akile_monitor">GitHub v0.0.2</a></div>
-    <div class="footer" style="margin-bottom: 30px">Copyright © 2023-{{new Date().getFullYear()}} Akile LTD.</div>
+    <div class="footer">Copyright © {{new Date().getFullYear()}} LoCyanTeam.</div>
+    <div class="footer" style="margin-bottom: 30px">Powered by <a target="_blank" href="https://github.com/akile-network/akile_monitor">Akile Monitor</a></div>
   </div>
 </template>
 
