@@ -142,7 +142,7 @@ const initScoket = async () => {
         }
       })
 
-      setTimeout(() => sendPing(), 1000)
+      setTimeout(() => sendPing(), 10000)
 
     } catch (error) {
       console.error('解析 WebSocket 消息时出错:', error);
