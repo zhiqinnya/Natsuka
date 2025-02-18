@@ -297,7 +297,7 @@ provide('handleChangeType', handleChangeType)
 
 <template>
   <n-config-provider :theme="theme">
-    <n-layout :native-scrollbar="false" style="height: 100dvh">
+    <n-layout :native-scrollbar="false" style="height: 100dvh; padding-inline: 0.75rem">
       <div class="max-container">
         <div class="header">
           <n-el class="logo">
@@ -686,7 +686,7 @@ a {
 }
 
 .area-tabs {
-  margin: 20px 10px;
+  margin: 20px 0;
 
   .area-tab-item {
     margin-bottom: 10px;

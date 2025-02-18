@@ -139,4 +139,10 @@ const { stats, type } = defineProps({
     }
   }
 }
+
+@media screen and (max-width: 800px) {
+  .status-gi {
+    margin-left: 0;
+  }
+}
 </style>
