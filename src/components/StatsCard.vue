@@ -24,7 +24,7 @@ const { stats, type } = defineProps({
 
 <template>
   <n-grid cols="3" item-responsive>
-    <n-grid-item class="status-gi" span="400:3 800:1">
+    <n-grid-item class="status-gi" span="3 800:1">
       <n-card
         hoverable
         title="服务器总数"
@@ -38,7 +38,7 @@ const { stats, type } = defineProps({
         </div>
       </n-card>
     </n-grid-item>
-    <n-grid-item class="status-gi" span="400:3 800:1">
+    <n-grid-item class="status-gi" span="3 800:1">
       <n-card
         hoverable
         title="在线服务器"
@@ -52,7 +52,7 @@ const { stats, type } = defineProps({
         </div>
       </n-card>
     </n-grid-item>
-    <n-grid-item class="status-gi" span="400:3 800:1">
+    <n-grid-item class="status-gi" span="3 800:1">
       <n-card
         hoverable
         title="离线服务器"
