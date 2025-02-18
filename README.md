@@ -1,31 +1,29 @@
-# Akile Monitor Fe
+# Natsuka
 
-![预览](https://github.com/akile-network/akile_monitor_fe/blob/main/akile_monitor.jpg?raw=true)
-
-Akile Monitor 前端开源项目，各位可以自行去 [Github Actions](https://github.com/akile-network/akile_monitor_fe/actions) 下载最近的构建后的文件
-
-新增加Github Actions并添加修改后的config.json文件，各位可以去自行下载，并修改config.json填写自己的后端API和WS地址
+一款 Akile Monitor 前端，基于 Naive UI 开发。
 
 ## 安装
+
 ```bash
-git clone https://github.com/akile-network/akile_monitor_fe.git
+git clone https://github.com/LoCyan-Team/Natsuka.git
 
 cd akile_monitor_fe
 
-npm install
+bun install
 ```
 
 ## 配置文件
-```
-构建后config.json中进行修改
-```
 
-## 打包
+您可以在构建后生成的 `config.json` 中进行修改
+
+## 构建
+
 ```bash
-npm run build
+bun run build
 ```
 
 ## 开发
+
 ```bash
-npm run dev
+bun run dev
 ```

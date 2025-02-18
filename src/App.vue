@@ -1,33 +1,24 @@
 <script setup>
-import {computed, onMounted, provide, ref} from "vue";
+import { computed, onMounted, provide, ref } from 'vue'
 import moment from 'moment'
-import CPU from "@/components/CPU.vue";
-import Mem from "@/components/Mem.vue";
-import NetIn from "@/components/NetIn.vue";
-import NetOut from "@/components/NetOut.vue";
-import axios from "axios";
-import { Message } from "@arco-design/web-vue";
-import StatsCard from "@/components/StatsCard.vue";
-import {formatBytes, formatTimeStamp, formatUptime, calculateRemainingDays} from '@/utils/utils'
+import CPU from '@/components/CPU.vue'
+import Mem from '@/components/Mem.vue'
+import NetIn from '@/components/NetIn.vue'
+import NetOut from '@/components/NetOut.vue'
+import axios from 'axios'
+import { Message } from '@arco-design/web-vue'
+import StatsCard from '@/components/StatsCard.vue'
+import { calculateRemainingDays, formatBytes, formatTimeStamp, formatUptime } from '@/utils/utils'
+import { darkTheme, useOsTheme } from 'naive-ui'
 
 const socketURL = ref('')
 const apiURL = ref('')
 
-const theme = window.localStorage.getItem('theme') || 'light'
-const dark = ref(theme !== 'light')
+const osThemeRef = useOsTheme()
 
-const handleChangeDark = () => {
-  dark.value = !dark.value
-
-  if (dark.value) {
-    window.localStorage.setItem('theme','dark')
-    document.body.setAttribute('arco-theme', 'dark')
-  } else {
-    // 恢复亮色主题
-    window.localStorage.setItem('theme','light')
-    document.body.removeAttribute('arco-theme');
-   }
-}
+const theme = computed(() => (osThemeRef.value === 'dark' ? darkTheme : null))
+// const theme = window.localStorage.getItem('theme') || 'light'
+// const dark = ref(theme !== 'light')
 
 const area = ref([])
 const selectArea = ref('all')
@@ -50,21 +41,21 @@ const host = computed(() => {
     return data.value
   }
 
-  return data.value.filter(item => item.Host.Name.slice(0, 2) === selectArea.value)
+  return data.value.filter((item) => item.Host.Name.slice(0, 2) === selectArea.value)
 })
 
 const hosts = computed(() => {
   if (type.value === 'all') {
     return host.value
   } else if (type.value === 'online') {
-    return host.value.filter(item => item.status)
+    return host.value.filter((item) => item.status)
   } else {
-    return host.value.filter(item => !item.status)
+    return host.value.filter((item) => !item.status)
   }
 })
 
 const stats = computed(() => {
-  const online = host.value.filter(item => item.status)
+  const online = host.value.filter((item) => item.status)
   let bandwidth_up = 0
   let bandwidth_down = 0
   let traffic_up = 0
@@ -90,7 +81,7 @@ const stats = computed(() => {
 
 let socket = null
 
-let nowtime = (Math.floor(Date.now() / 1000))
+let nowtime = Math.floor(Date.now() / 1000)
 
 const fetchConfig = async () => {
   try {
@@ -105,14 +96,14 @@ const fetchConfig = async () => {
 const initScoket = async () => {
   await fetchConfig()
 
-  socket = new WebSocket(socketURL.value);  // 替换为实际的 WebSocket 服务器 URL
+  socket = new WebSocket(socketURL.value) // 替换为实际的 WebSocket 服务器 URL
 
-  socket.onmessage = function(event) {
+  socket.onmessage = function (event) {
     try {
-      const message = event.data;
+      const message = event.data
       const res = JSON.parse(message.replace('data: ', ''))
       if (res != null) {
-        area.value = Array.from(new Set(res.map(item => item.Host.Name.slice(0, 2))))
+        area.value = Array.from(new Set(res.map((item) => item.Host.Name.slice(0, 2))))
       }
       data.value = res.map((host) => {
         if (!charts.value[host.Host.Name]) {
@@ -124,7 +115,7 @@ const initScoket = async () => {
           }
         }
 
-        if (charts.value[host.Host.Name].cpu.length == 2) {
+        if (charts.value[host.Host.Name].cpu.length === 2) {
           charts.value[host.Host.Name].cpu = charts.value[host.Host.Name].cpu.slice(1)
           charts.value[host.Host.Name].mem = charts.value[host.Host.Name].mem.slice(1)
           charts.value[host.Host.Name].net_in = charts.value[host.Host.Name].net_in.slice(1)
@@ -138,16 +129,15 @@ const initScoket = async () => {
 
         return {
           ...host,
-          status: (nowtime - host.TimeStamp <= 10) ? 1 : 0
+          status: nowtime - host.TimeStamp <= 10 ? 1 : 0
         }
       })
 
       setTimeout(() => sendPing(), 5000)
-
     } catch (error) {
-      console.error('解析 WebSocket 消息时出错:', error);
+      console.error('解析 WebSocket 消息时出错:', error)
     }
-  };
+  }
 
   socket.onopen = function () {
     sendPing()
@@ -161,26 +151,26 @@ const initScoket = async () => {
 }
 
 const sendPing = () => {
-  nowtime = (Math.floor(Date.now() / 1000))
+  nowtime = Math.floor(Date.now() / 1000)
   socket.send('ping')
 }
 
-onMounted(async() => {
-  if (dark.value) {
-    document.body.setAttribute('arco-theme', 'dark')
-  }
+onMounted(async () => {
+  // if (dark.value) {
+  //   document.body.setAttribute('arco-theme', 'dark')
+  // }
 
   await initScoket()
-  handleFetchHostInfo()
+  await handleFetchHostInfo()
 })
 
 const progressStatus = (value) => {
   if (value < 80) {
-    return 'success';
+    return 'success'
   } else if (value < 90) {
-    return 'warning';
+    return 'warning'
   } else {
-    return 'danger';
+    return 'danger'
   }
 }
 
@@ -203,7 +193,7 @@ const authSecret = ref('')
 const deleteHostName = ref('')
 
 const handleShowDelete = (name) => {
-  authSecret.value =  window.localStorage.getItem('auth_secret') || ''
+  authSecret.value = window.localStorage.getItem('auth_secret') || ''
   deleteHostName.value = name
   deleteVisible.value = true
 }
@@ -211,8 +201,8 @@ const handleShowDelete = (name) => {
 const handleDeleteHost = async () => {
   try {
     await axios.post(apiURL.value + '/delete', {
-      "auth_secret": authSecret.value,
-      "name": deleteHostName.value
+      auth_secret: authSecret.value,
+      name: deleteHostName.value
     })
 
     window.localStorage.setItem('auth_secret', authSecret.value)
@@ -273,18 +263,17 @@ const handleShowEdit = (name) => {
   price.value = hostInfo.value[name].price
   editVisible.value = true
   authSecret.value = window.localStorage.getItem('auth_secret') || ''
-
 }
 
 const handleEditHost = async () => {
   try {
     await axios.post(apiURL.value + '/info', {
-      "name": editHostName.value,
-      "due_time": new Date(duetime.value).getTime(),
-      "buy_url": buy_url.value,
-      "seller": seller.value,
-      "auth_secret": authSecret.value,
-      "price": price.value
+      name: editHostName.value,
+      due_time: new Date(duetime.value).getTime(),
+      buy_url: buy_url.value,
+      seller: seller.value,
+      auth_secret: authSecret.value,
+      price: price.value
     })
 
     window.localStorage.setItem('auth_secret', authSecret.value)
@@ -297,7 +286,6 @@ const handleEditHost = async () => {
   } catch (e) {
     Message.error('更新失败，管理密钥错误')
   }
-
 }
 
 const handleEditClose = () => {
@@ -305,231 +293,373 @@ const handleEditClose = () => {
 }
 
 provide('handleChangeType', handleChangeType)
-
 </script>
 
 <template>
-  <div class="max-container">
-    <div class="header">
-      <a class="logo" href="#">
-        <img class="arco-icon" src="/favicon.ico">
-        <span>LoCyanFrp</span>
-        <small style="font-weight: 400;opacity: .8"> ｜ 节点服务器监控</small>
-      </a>
-      <a-button class="theme-btn" :shape="'round'" @click="handleChangeDark">
-        <template #icon>
-          <icon-sun-fill v-if="!dark" />
-          <icon-moon-fill v-else />
-        </template>
-      </a-button>
-    </div>
-    <div class="area-tabs">
-      <div class="area-tab-item" :class="selectArea === 'all' ? 'is-active' : ''" @click="handleSelectArea('all')">
-        全部地区
-      </div>
-      <div class="area-tab-item" :class="selectArea === item ? 'is-active' : ''" v-for="(item, index) in area" :key="item" @click="handleSelectArea(item)">
-        <span :class="`flag-icon flag-icon-${item.replace('UK', 'GB').toLowerCase()}`" style="margin-right: 3px;"></span> {{item}}
-      </div>
-    </div>
-    <StatsCard :type="type" :stats="stats" @handleChangeType="handleChangeType" />
-    <div class="monitor-card">
-      <div class="monitor-item" :class="selectHost === item.Host.Name ? 'is-active' : ''" v-for="(item, index) in hosts" @click="handleSelectHost(item.Host.Name)" :key="index">
-        <div class="name">
-          <div class="title">
-            <span :class="`flag-icon flag-icon-${item.Host.Name.slice(0, 2).replace('UK', 'GB').toLowerCase()}`"></span>
-            {{item.Host.Name}}
-          </div>
-          <div class="status" :class="item.status ? 'online' : 'offline'">
-            <span>{{item.status  ? '在线' : '离线'}}</span>
-            <span style="margin-left: 6px;">{{formatUptime(item.State.Uptime)}}</span>
-          </div>
+  <n-config-provider :theme="theme">
+    <n-layout :native-scrollbar="false" style="height: 100dvh">
+      <div class="max-container">
+        <div class="header">
+          <n-el class="logo">
+            <img class="arco-icon" src="/favicon.ico" alt="" />
+            <n-text style="font-weight: 400; opacity: 0.8">LoCyanFrp｜节点服务器监控</n-text>
+          </n-el>
+          <!--      <a-button class="theme-btn" :shape="'round'" @click="handleChangeDark">-->
+          <!--        <template #icon>-->
+          <!--          <icon-sun-fill v-if="!dark" />-->
+          <!--          <icon-moon-fill v-else />-->
+          <!--        </template>-->
+          <!--      </a-button>-->
         </div>
-        <div class="platform">
-          <div class="monitor-item-title">系统</div>
-          <div class="monitor-item-value">{{item.Host.Platform}} {{item.Host.PlatformVersion}}</div>
+        <div class="area-tabs">
+          <n-button
+            class="area-tab-item"
+            :type="selectArea === 'all' ? 'success' : ''"
+            :class="selectArea === 'all' ? 'is-active' : ''"
+            @click="handleSelectArea('all')"
+          >
+            全部地区
+          </n-button>
+          <n-button
+            class="area-tab-item"
+            :type="selectArea === item ? 'success' : ''"
+            :class="selectArea === item ? 'is-active' : ''"
+            v-for="item in area"
+            :key="item"
+            @click="handleSelectArea(item)"
+          >
+            <span
+              :class="`flag-icon flag-icon-${item.replace('UK', 'GB').toLowerCase()}`"
+              style="margin-right: 3px"
+            ></span>
+            {{ item }}
+          </n-button>
         </div>
-        <div class="cpu">
-          <div class="monitor-item-title">CPU</div>
-          <div class="monitor-item-value">{{item.State.CPU.toFixed(2) + '%'}}</div>
-          <a-progress class="monitor-item-progress" :status="progressStatus(item.State.CPU)" :percent="item.State.CPU/100" :show-text="false" style="width: 60px" />
-        </div>
-        <div class="mem">
-          <div class="monitor-item-title">内存使用情况</div>
-          <div class="monitor-item-value">{{(item.State.MemUsed / item.Host.MemTotal * 100).toFixed(2) + '%'}}</div>
-          <a-progress class="monitor-item-progress" :status="progressStatus(item.State.MemUsed / item.Host.MemTotal * 100)" :percent="item.State.MemUsed / item.Host.MemTotal" :show-text="false" style="width: 60px" />
-        </div>
-        <div class="network">
-          <div class="monitor-item-title">网络速度（IN|OUT）</div>
-          <div class="monitor-item-value">{{`${formatBytes(item.State.NetInSpeed)}/s | ${formatBytes(item.State.NetOutSpeed)}/s`}}</div>
-        </div>
-        <div class="average">
-          <div class="monitor-item-title">负载平均值(1|5|15)</div>
-          <div class="monitor-item-value">{{`${item.State.Load1} | ${item.State.Load5} | ${item.State.Load15}`}}</div>
-        </div>
-        <div class="uptime" style="width: 120px;">
-          <div class="monitor-item-title">剩余时间</div>
-          <div class="monitor-item-value">{{hostInfo[item.Host.Name] ? calculateRemainingDays(hostInfo[item.Host.Name].due_time) : '-'}}</div>
-        </div>
-        <div class="uptime">
-          <div class="monitor-item-title">上报时间</div>
-          <div class="monitor-item-value">{{formatTimeStamp(item.TimeStamp)}}</div>
-        </div>
-        <div class="detail" v-if="selectHost === item.Host.Name">
-          <a-row>
-            <a-col :span="10" :xs="24" :sm="24" :md="10" :lg="10" :sl="10">
-              <div class="detail-item-list">
-                <div class="detail-item">
-                  <div class="name">主机名</div>
-                  <div class="value">{{item.Host.Name}}</div>
-                </div>
-                <div class="detail-item">
-                  <div class="name">地区</div>
-                  <div class="value">
-                    <span :class="`flag-icon flag-icon-${item.Host.Name.slice(0, 2).replace('UK', 'GB').toLowerCase()}`"></span>
-                    {{item.Host.Name.slice(0, 2).toUpperCase()}}
-                  </div>
-                </div>
-                <div class="detail-item">
-                  <div class="name">系统</div>
-                  <div class="value">{{item.Host.Platform}} {{item.Host.PlatformVersion}}</div>
-                </div>
-                <div class="detail-item">
-                  <div class="name">架构</div>
-                  <div class="value">{{item.Host.Arch}}</div>
-                </div>
-                <div class="detail-item">
-                  <div class="name">虚拟化</div>
-                  <div class="value">{{item.Host.Virtualization || '-'}}</div>
-                </div>
-                <div class="detail-item">
-                  <div class="name">CPU</div>
-                  <div class="value">{{item.Host.CPU.join(',')}}</div>
-                </div>
-                <div class="detail-item">
-                  <div class="name">CPU占用</div>
-                  <div class="value">{{item.State.CPU.toFixed(2) + '%'}}</div>
-                </div>
-                <div class="detail-item">
-                  <div class="name">内存使用情况</div>
-                  <div class="value">{{(item.State.MemUsed / item.Host.MemTotal * 100).toFixed(2) + '%'}} ({{formatBytes(item.State.MemUsed)}} / {{formatBytes(item.Host.MemTotal)}})</div>
-                </div>
-                <div class="detail-item">
-                  <div class="name">虚拟内存(Swap)</div>
-                  <div class="value">{{formatBytes(item.State.SwapUsed)}} / {{formatBytes(item.Host.SwapTotal)}}</div>
-                </div>
-                <div class="detail-item">
-                  <div class="name">网络速度（IN|OUT）</div>
-                  <div class="value">{{`${formatBytes(item.State.NetInSpeed)}/s | ${formatBytes(item.State.NetOutSpeed)}/s`}}</div>
-                </div>
-                <div class="detail-item">
-                  <div class="name">负载平均值(1|5|15)</div>
-                  <div class="value">{{`${item.State.Load1} | ${item.State.Load5} | ${item.State.Load15}`}}</div>
-                </div>
-                <div class="detail-item">
-                  <div class="name">流量使用↑|↓</div>
-                  <div class="value">{{formatBytes(item.State.NetOutTransfer)}} | {{formatBytes(item.State.NetInTransfer)}}</div>
-                </div>
-                <div class="detail-item">
-                  <div class="name">开机时间</div>
-                  <div class="value">{{formatTimeStamp(item.Host.BootTime)}}</div>
-                </div>
-                <div class="detail-item">
-                  <div class="name">上报时间</div>
-                  <div class="value">{{formatTimeStamp(item.TimeStamp)}}</div>
-                </div>
-                <div class="detail-item" v-if="hostInfo[item.Host.Name] && hostInfo[item.Host.Name].seller">
-                  <div class="name">商家名称</div>
-                  <div class="value">{{hostInfo[item.Host.Name].seller}}</div>
-                </div>
-                <div class="detail-item" v-if="hostInfo[item.Host.Name] && hostInfo[item.Host.Name].price">
-                  <div class="name">主机价格</div>
-                  <div class="value">{{hostInfo[item.Host.Name].price}}</div>
-                </div>
-                <div class="detail-item" v-if="hostInfo[item.Host.Name] && hostInfo[item.Host.Name].due_time">
-                  <div class="name">到期时间</div>
-                  <div class="value">{{moment(hostInfo[item.Host.Name].due_time).format('YYYY-MM-DD')}}</div>
-                </div>
-                <div class="detail-item" v-if="hostInfo[item.Host.Name] && hostInfo[item.Host.Name].buy_url">
-                  <div class="name">购买链接</div>
-                  <div class="value">
-                    <a style="color: #0077ff" :href="hostInfo[item.Host.Name].buy_url" target="_blank" @click.stop="() => {}">{{hostInfo[item.Host.Name].buy_url}}</a>
-                  </div>
-                </div>
+        <StatsCard :type="type" :stats="stats" @handleChangeType="handleChangeType" />
+        <n-divider />
+        <div class="monitor-card">
+          <n-card
+            hoverable
+            class="monitor-item"
+            :class="selectHost === item.Host.Name ? 'is-active' : ''"
+            v-for="(item, index) in hosts"
+            @click="handleSelectHost(item.Host.Name)"
+            :key="index"
+          >
+            <div class="name">
+              <div class="title">
+                <span
+                  :class="`flag-icon flag-icon-${item.Host.Name.slice(0, 2).replace('UK', 'GB').toLowerCase()}`"
+                ></span>
+                {{ item.Host.Name }}
               </div>
-            </a-col>
-            <a-col :span="14" :xs="24" :sm="24" :md="14" :lg="14" :sl="14">
-              <a-row :gutter="20">
-                <a-col :span="12" :xs="24" :sm="24" :md="12" :lg="12" :sl="12">
-                  <CPU ref="cpuRef" style="margin-bottom: 20px;" :data="charts[item.Host.Name].cpu" />
+              <div class="status" :class="item.status ? 'online' : 'offline'">
+                <span>{{ item.status ? '在线' : '离线' }}</span>
+                <span style="margin-left: 6px">{{ formatUptime(item.State.Uptime) }}</span>
+              </div>
+            </div>
+            <div class="platform">
+              <div class="monitor-item-title">系统</div>
+              <div class="monitor-item-value">
+                {{ item.Host.Platform }} {{ item.Host.PlatformVersion }}
+              </div>
+            </div>
+            <div class="cpu">
+              <div class="monitor-item-title">CPU</div>
+              <div class="monitor-item-value">{{ item.State.CPU.toFixed(2) + '%' }}</div>
+              <a-progress
+                class="monitor-item-progress"
+                :status="progressStatus(item.State.CPU)"
+                :percent="item.State.CPU / 100"
+                :show-text="false"
+                style="width: 60px"
+              />
+            </div>
+            <div class="mem">
+              <div class="monitor-item-title">内存使用情况</div>
+              <div class="monitor-item-value">
+                {{ ((item.State.MemUsed / item.Host.MemTotal) * 100).toFixed(2) + '%' }}
+              </div>
+              <a-progress
+                class="monitor-item-progress"
+                :status="progressStatus((item.State.MemUsed / item.Host.MemTotal) * 100)"
+                :percent="item.State.MemUsed / item.Host.MemTotal"
+                :show-text="false"
+                style="width: 60px"
+              />
+            </div>
+            <div class="network">
+              <div class="monitor-item-title">网络速度（IN|OUT）</div>
+              <div class="monitor-item-value">
+                {{
+                  `${formatBytes(item.State.NetInSpeed)}/s | ${formatBytes(item.State.NetOutSpeed)}/s`
+                }}
+              </div>
+            </div>
+            <div class="average">
+              <div class="monitor-item-title">负载平均值(1|5|15)</div>
+              <div class="monitor-item-value">
+                {{ `${item.State.Load1} | ${item.State.Load5} | ${item.State.Load15}` }}
+              </div>
+            </div>
+            <div class="uptime" style="width: 120px">
+              <div class="monitor-item-title">剩余时间</div>
+              <div class="monitor-item-value">
+                {{
+                  hostInfo[item.Host.Name]
+                    ? calculateRemainingDays(hostInfo[item.Host.Name].due_time)
+                    : '-'
+                }}
+              </div>
+            </div>
+            <div class="uptime">
+              <div class="monitor-item-title">上报时间</div>
+              <div class="monitor-item-value">{{ formatTimeStamp(item.TimeStamp) }}</div>
+            </div>
+            <template #action class="detail" v-if="selectHost === item.Host.Name">
+              <a-row>
+                <a-col :span="10" :xs="24" :sm="24" :md="10" :lg="10" :sl="10">
+                  <div class="detail-item-list">
+                    <div class="detail-item">
+                      <div class="name">主机名</div>
+                      <div class="value">{{ item.Host.Name }}</div>
+                    </div>
+                    <div class="detail-item">
+                      <n-text class="name">地区</n-text>
+                      <n-text class="value">
+                        <span
+                          :class="`flag-icon flag-icon-${item.Host.Name.slice(0, 2).replace('UK', 'GB').toLowerCase()}`"
+                        ></span>
+                        {{ item.Host.Name.slice(0, 2).toUpperCase() }}
+                      </n-text>
+                    </div>
+                    <div class="detail-item">
+                      <n-text class="name">系统</n-text>
+                      <n-text class="value"
+                        >{{ item.Host.Platform }} {{ item.Host.PlatformVersion }}</n-text
+                      >
+                    </div>
+                    <div class="detail-item">
+                      <n-text class="name">架构</n-text>
+                      <n-text class="value">{{ item.Host.Arch }}</n-text>
+                    </div>
+                    <div class="detail-item">
+                      <n-text class="name">虚拟化</n-text>
+                      <n-text class="value">{{ item.Host.Virtualization || '-' }}</n-text>
+                    </div>
+                    <div class="detail-item">
+                      <n-text class="name">CPU</n-text>
+                      <n-text class="value">{{ item.Host.CPU.join(',') }}</n-text>
+                    </div>
+                    <div class="detail-item">
+                      <n-text class="name">CPU占用</n-text>
+                      <n-text class="value">{{ item.State.CPU.toFixed(2) + '%' }}</n-text>
+                    </div>
+                    <div class="detail-item">
+                      <n-text class="name">内存使用情况</n-text>
+                      <n-text class="value"
+                        >{{
+                          ((item.State.MemUsed / item.Host.MemTotal) * 100).toFixed(2) + '%'
+                        }}
+                        ({{ formatBytes(item.State.MemUsed) }} /
+                        {{ formatBytes(item.Host.MemTotal) }})
+                      </n-text>
+                    </div>
+                    <div class="detail-item">
+                      <n-text class="name">虚拟内存(Swap)</n-text>
+                      <n-text class="value"
+                        >{{ formatBytes(item.State.SwapUsed) }} /
+                        {{ formatBytes(item.Host.SwapTotal) }}
+                      </n-text>
+                    </div>
+                    <div class="detail-item">
+                      <n-text class="name">网络速度（IN|OUT）</n-text>
+                      <n-text class="value">
+                        {{
+                          `${formatBytes(item.State.NetInSpeed)}/s | ${formatBytes(item.State.NetOutSpeed)}/s`
+                        }}
+                      </n-text>
+                    </div>
+                    <div class="detail-item">
+                      <n-text class="name">负载平均值(1|5|15)</n-text>
+                      <n-text class="value"
+                        >{{ `${item.State.Load1} | ${item.State.Load5} | ${item.State.Load15}` }}
+                      </n-text>
+                    </div>
+                    <div class="detail-item">
+                      <n-text class="name">流量使用↑|↓</n-text>
+                      <n-text class="value"
+                        >{{ formatBytes(item.State.NetOutTransfer) }} |
+                        {{ formatBytes(item.State.NetInTransfer) }}
+                      </n-text>
+                    </div>
+                    <div class="detail-item">
+                      <n-text class="name">开机时间</n-text>
+                      <n-text class="value">{{ formatTimeStamp(item.Host.BootTime) }}</n-text>
+                    </div>
+                    <div class="detail-item">
+                      <n-text class="name">上报时间</n-text>
+                      <n-text class="value">{{ formatTimeStamp(item.TimeStamp) }}</n-text>
+                    </div>
+                    <div
+                      class="detail-item"
+                      v-if="hostInfo[item.Host.Name] && hostInfo[item.Host.Name].seller"
+                    >
+                      <n-text class="name">商家名称</n-text>
+                      <n-text class="value">{{ hostInfo[item.Host.Name].seller }}</n-text>
+                    </div>
+                    <div
+                      class="detail-item"
+                      v-if="hostInfo[item.Host.Name] && hostInfo[item.Host.Name].price"
+                    >
+                      <n-text class="name">主机价格</n-text>
+                      <n-text class="value">{{ hostInfo[item.Host.Name].price }}</n-text>
+                    </div>
+                    <div
+                      class="detail-item"
+                      v-if="hostInfo[item.Host.Name] && hostInfo[item.Host.Name].due_time"
+                    >
+                      <n-text class="name">到期时间</n-text>
+                      <n-text class="value"
+                        >{{ moment(hostInfo[item.Host.Name].due_time).format('YYYY-MM-DD') }}
+                      </n-text>
+                    </div>
+                    <div
+                      class="detail-item"
+                      v-if="hostInfo[item.Host.Name] && hostInfo[item.Host.Name].buy_url"
+                    >
+                      <n-text class="name">购买链接</n-text>
+                      <n-text class="value">
+                        <a
+                          style="color: #0077ff"
+                          :href="hostInfo[item.Host.Name].buy_url"
+                          target="_blank"
+                          @click.stop="() => {}"
+                          >{{ hostInfo[item.Host.Name].buy_url }}</a
+                        >
+                      </n-text>
+                    </div>
+                  </div>
                 </a-col>
-                <a-col :span="12" :xs="24" :sm="24" :md="12" :lg="12" :sl="12">
-                  <Mem ref="memRef" :max="item.Host.MemTotal" style="margin-bottom: 20px;" :data="charts[item.Host.Name].mem" />
-                </a-col>
-                <a-col :span="12" :xs="24" :sm="24" :md="12" :lg="12" :sl="12">
-                  <NetIn ref="netInRef" :data="charts[item.Host.Name].net_in" />
-                </a-col>
-                <a-col :span="12" :xs="24" :sm="24" :md="12" :lg="12" :sl="12">
-                  <NetOut ref="netOutRef" :data="charts[item.Host.Name].net_out" />
+                <a-col :span="14" :xs="24" :sm="24" :md="14" :lg="14" :sl="14">
+                  <a-row :gutter="20">
+                    <a-col :span="12" :xs="24" :sm="24" :md="12" :lg="12" :sl="12">
+                      <CPU
+                        ref="cpuRef"
+                        style="margin-bottom: 20px"
+                        :data="charts[item.Host.Name].cpu"
+                      />
+                    </a-col>
+                    <a-col :span="12" :xs="24" :sm="24" :md="12" :lg="12" :sl="12">
+                      <Mem
+                        ref="memRef"
+                        :max="item.Host.MemTotal"
+                        style="margin-bottom: 20px"
+                        :data="charts[item.Host.Name].mem"
+                      />
+                    </a-col>
+                    <a-col :span="12" :xs="24" :sm="24" :md="12" :lg="12" :sl="12">
+                      <NetIn ref="netInRef" :data="charts[item.Host.Name].net_in" />
+                    </a-col>
+                    <a-col :span="12" :xs="24" :sm="24" :md="12" :lg="12" :sl="12">
+                      <NetOut ref="netOutRef" :data="charts[item.Host.Name].net_out" />
+                    </a-col>
+                  </a-row>
                 </a-col>
               </a-row>
-            </a-col>
-          </a-row>
+            </template>
+            <div class="edit-btn" @click.stop="handleShowEdit(item.Host.Name)">
+              <icon-edit />
+            </div>
+            <div class="delete-btn" @click.stop="handleShowDelete(item.Host.Name)">
+              <icon-delete />
+            </div>
+          </n-card>
         </div>
-        <div class="edit-btn" @click.stop="handleShowEdit(item.Host.Name)">
-          <icon-edit />
+        <a-modal v-model:visible="deleteVisible" :footer="false" :hide-title="true" width="360px">
+          <div class="akile-modal-title">
+            <span>删除主机</span>
+            <a-button @click="handleClose">
+              <template #icon>
+                <icon-close />
+              </template>
+            </a-button>
+          </div>
+          <div class="akile-modal-content">
+            <a-input-password v-model="authSecret" placeholder="请输入管理密钥"></a-input-password>
+            <div class="tips">提示：删除后无法恢复，请确定后再删除操作</div>
+          </div>
+          <div class="akile-modal-action">
+            <a-button type="primary" status="danger" :long="true" @click="handleDeleteHost"
+              >确认删除</a-button
+            >
+          </div>
+        </a-modal>
+        <a-modal v-model:visible="editVisible" :footer="false" :hide-title="true" width="360px">
+          <div class="akile-modal-title">
+            <span>编辑主机信息</span>
+            <a-button @click="handleEditClose">
+              <template #icon>
+                <icon-close />
+              </template>
+            </a-button>
+          </div>
+          <div class="akile-modal-content">
+            <a-date-picker
+              v-model="duetime"
+              placeholder="请选择到期时间"
+              style="margin-bottom: 10px; width: 100%"
+            ></a-date-picker>
+            <a-input
+              v-model="seller"
+              placeholder="请输入卖家"
+              style="margin-bottom: 10px"
+            ></a-input>
+            <a-input v-model="price" placeholder="请输入价格" style="margin-bottom: 10px"></a-input>
+            <a-input
+              v-model="buy_url"
+              placeholder="请输入购买链接"
+              style="margin-bottom: 10px"
+            ></a-input>
+            <a-input-password v-model="authSecret" placeholder="请输入管理密钥"></a-input-password>
+          </div>
+          <div class="akile-modal-action">
+            <a-button type="primary" :long="true" @click="handleEditHost">更新信息</a-button>
+          </div>
+        </a-modal>
+        <div class="footer">
+          <n-text>Copyright © {{ new Date().getFullYear() }} LoCyanTeam.</n-text>
+          <br />
+          <n-text style="margin-bottom: 30px">
+            Powered by
+            <a target="_blank" href="https://github.com/akile-network/akile_monitor">
+              Akile Monitor
+            </a>
+          </n-text>
+          <n-text>
+            Frontend
+            <a target="_blank" href="https://github.com/LoCyan-Team/Natsuka"> Natsuka </a>
+          </n-text>
         </div>
-        <div class="delete-btn" @click.stop="handleShowDelete(item.Host.Name)">
-          <icon-delete />
-        </div>
       </div>
-    </div>
-    <a-modal v-model:visible="deleteVisible" :footer="false" :hide-title="true" width="360px">
-      <div class="akile-modal-title">
-        <span>删除主机</span>
-        <a-button @click="handleClose">
-          <template #icon>
-            <icon-close/>
-          </template>
-        </a-button>
-      </div>
-      <div class="akile-modal-content">
-        <a-input-password v-model="authSecret" placeholder="请输入管理密钥"></a-input-password>
-        <div class="tips">提示：删除后无法恢复，请确定后再删除操作</div>
-      </div>
-      <div class="akile-modal-action">
-        <a-button type="primary" status="danger" :long="true" @click="handleDeleteHost">确认删除</a-button>
-      </div>
-    </a-modal>
-    <a-modal v-model:visible="editVisible" :footer="false" :hide-title="true" width="360px">
-      <div class="akile-modal-title">
-        <span>编辑主机信息</span>
-        <a-button @click="handleEditClose">
-          <template #icon>
-            <icon-close/>
-          </template>
-        </a-button>
-      </div>
-      <div class="akile-modal-content">
-        <a-date-picker v-model="duetime" placeholder="请选择到期时间" style="margin-bottom: 10px;width: 100%;"></a-date-picker>
-        <a-input v-model="seller" placeholder="请输入卖家" style="margin-bottom: 10px;"></a-input>
-        <a-input v-model="price" placeholder="请输入价格" style="margin-bottom: 10px;"></a-input>
-        <a-input v-model="buy_url" placeholder="请输入购买链接" style="margin-bottom: 10px;"></a-input>
-        <a-input-password v-model="authSecret" placeholder="请输入管理密钥"></a-input-password>
-      </div>
-      <div class="akile-modal-action">
-        <a-button type="primary" :long="true" @click="handleEditHost">更新信息</a-button>
-      </div>
-    </a-modal>
-    <div class="footer">Copyright © {{new Date().getFullYear()}} LoCyanTeam.</div>
-    <div class="footer" style="margin-bottom: 30px">Powered by <a target="_blank" href="https://github.com/akile-network/akile_monitor">Akile Monitor</a></div>
-  </div>
+    </n-layout>
+  </n-config-provider>
 </template>
 
 <style lang="scss">
 body {
   margin: 0;
-  background-color: #fafafa;
-  font-family: Inter,-apple-system,BlinkMacSystemFont,Roboto,PingFang SC,Noto Sans CJK,WenQuanYi Micro Hei,Microsoft YaHei;
+  //background-color: #fafafa;
+  font-family:
+    Inter,
+    -apple-system,
+    BlinkMacSystemFont,
+    Roboto,
+    PingFang SC,
+    Noto Sans CJK,
+    WenQuanYi Micro Hei,
+    Microsoft YaHei,
+    sans-serif;
 }
 
 a {
@@ -549,9 +679,9 @@ a {
   justify-content: space-between;
 
   .theme-btn {
-    border: 1px solid #eeeeee!important;
-    background-color: #ffffff!important;
-    color: #333333!important;
+    //border: 1px solid #eeeeee!important;
+    //background-color: #ffffff!important;
+    color: #333333 !important;
   }
 }
 
@@ -562,52 +692,51 @@ a {
     margin-bottom: 10px;
     margin-right: 10px;
     padding: 6px 12px;
-    border-radius: 6px;
-    cursor: pointer;
-    border: 1px solid #e5e5e5;
-    background: #ffffff;
-    box-shadow: 0 2px 4px 0 rgba(133, 138, 180, 0.14);
+    //border-radius: 6px;
+    //cursor: pointer;
+    //border: 1px solid #e5e5e5;
+    //background: #ffffff;
+    //box-shadow: 0 2px 4px 0 rgba(133, 138, 180, 0.14);
     display: inline-block;
 
     .flag-icon {
       border-radius: 3px;
-      margin-top: -3px;
     }
 
-    &.is-active {
-      background: #005fe710;
-      color: #054db4;
-      border: 1px solid #005fe7;
-    }
+    //&.is-active {
+    //  //background: #005fe710;
+    //  //color: #054db4;
+    //  border: 1px solid #005fe7;
+    //}
   }
-
 }
 
 .monitor-card {
   position: relative;
-  margin: 0 auto;
-  padding: 10px;
+  transition: 1s;
+  margin: 15px auto 0;
+  //padding: 10px;
 
   .monitor-item {
     position: relative;
     margin-bottom: 12px;
-    padding: 12px 24px;
-    border-radius: 6px;
-    border: 1px solid #e5e5e5;
+    //padding: 12px 24px;
+    //border-radius: 6px;
+    //border: 1px solid #e5e5e5;
     display: block;
-    background: #ffffff;
-    box-shadow: 0 2px 4px 0 rgba(133, 138, 180, 0.14);
+    //background: #ffffff;
+    //box-shadow: 0 2px 4px 0 rgba(133, 138, 180, 0.14);
     cursor: pointer;
 
     &.is-active {
-      background: #e7e7e730;
+      //background: #e7e7e730;
 
       .delete-btn,
       .edit-btn {
-        display: none!important;
+        display: none !important;
       }
 
-      &>.detail {
+      & > .detail {
         margin-top: 15px;
         border-top: 1px solid #eeeeee;
         padding-top: 15px;
@@ -616,7 +745,7 @@ a {
     }
 
     &:hover {
-      background: #e7e7e730;
+      //background: #e7e7e730;
 
       .delete-btn,
       .edit-btn {
@@ -625,15 +754,15 @@ a {
     }
 
     .edit-btn {
-      right: 60px!important;
-      background: rgba(22, 131, 255, 0.13)!important;
+      right: 60px !important;
+      background: rgba(22, 131, 255, 0.13) !important;
 
       &:hover {
-        background: rgba(22, 131, 255, 0.19)!important;
+        background: rgba(22, 131, 255, 0.19) !important;
       }
 
       .arco-icon {
-        color: #1673ff!important;
+        color: #1673ff !important;
       }
     }
 
@@ -650,7 +779,7 @@ a {
       display: none;
       align-items: center;
       justify-content: center;
-      transition: .15s background-color ease-in-out;
+      transition: 0.15s background-color ease-in-out;
 
       &:hover {
         background: #ff161630;
@@ -664,12 +793,13 @@ a {
     .flag-icon {
       margin-right: 5px;
       border-radius: 3px;
+      transform: translateY(-2px);
     }
 
     .monitor-item-title {
       margin-bottom: 3px;
       font-size: 11px;
-      opacity: .6;
+      opacity: 0.6;
     }
 
     .monitor-item-value {
@@ -702,6 +832,7 @@ a {
       .status {
         display: flex;
         align-items: center;
+
         &::before {
           margin-right: 10px;
           position: relative;
@@ -721,7 +852,7 @@ a {
 
         span {
           font-size: 13px;
-          opacity: .6;
+          opacity: 0.6;
         }
       }
     }
@@ -808,7 +939,7 @@ a {
     margin-right: 5px;
     height: 28px;
     width: 28px;
-    color: rgb(22,93,255)!important;
+    color: rgb(22, 93, 255) !important;
   }
 }
 
@@ -826,13 +957,9 @@ a {
 }
 
 .footer {
+  margin-block: 2rem;
   line-height: 22px;
   text-align: center;
-  color: #565656;
-
-  a {
-    color: rgba(var(--primary-6));
-  }
 }
 
 .akile-modal-title {
@@ -846,6 +973,7 @@ a {
 
 .akile-modal-content {
   margin-bottom: 20px;
+
   .tips {
     font-size: 12px;
     color: #333333;
@@ -853,77 +981,78 @@ a {
   }
 }
 
-body[arco-theme='dark'] {
-  background-color: #111111;
-
-  .arco-modal {
-    background-color: #0e0e0e;
-    border: 1px solid rgba(255,255,255,0.05);
-  }
-
-  .header {
-    .logo {
-      span,
-      small {
-        color: #ffffff;
-      }
-    }
-
-    .theme-btn {
-      border: 1px solid #333333!important;
-      background-color: #000000!important;
-      color: #ffffff!important;
-    }
-  }
-
-  .area-tabs {
-    .area-tab-item {
-      border-color: #333333;
-      background: #000000;
-      color: #ffffff;
-      box-shadow: none;
-
-      &.is-active {
-        background: #005fe705;
-        color: #005fe7;
-        border: 1px solid #005fe7;
-      }
-    }
-  }
-
-  .footer {
-    color: #ffffffAA;
-  }
-
-  .monitor-card {
-    .monitor-item {
-      border: 1px solid rgb(255 255 255 / 16%);
-      box-shadow: none;
-      background-color: #000000;
-      color: #ffffff;
-
-      &:hover {
-        background-color: #101010;
-      }
-
-      .detail {
-        border-color: #333333AA;
-        .detail-item-list {
-          .detail-item {
-            .name {
-              color: #999999;
-            }
-          }
-        }
-      }
-    }
-  }
-
-}
+//
+//body[arco-theme='dark'] {
+//  background-color: #111111;
+//
+//  .arco-modal {
+//    background-color: #0e0e0e;
+//    border: 1px solid rgba(255,255,255,0.05);
+//  }
+//
+//  .header {
+//    .logo {
+//      span,
+//      small {
+//        color: #ffffff;
+//      }
+//    }
+//
+//    .theme-btn {
+//      border: 1px solid #333333!important;
+//      background-color: #000000!important;
+//      color: #ffffff!important;
+//    }
+//  }
+//
+//  .area-tabs {
+//    .area-tab-item {
+//      border-color: #333333;
+//      background: #000000;
+//      color: #ffffff;
+//      box-shadow: none;
+//
+//      &.is-active {
+//        background: #005fe705;
+//        color: #005fe7;
+//        border: 1px solid #005fe7;
+//      }
+//    }
+//  }
+//
+//  .footer {
+//    color: #ffffffAA;
+//  }
+//
+//  .monitor-card {
+//    .monitor-item {
+//      border: 1px solid rgb(255 255 255 / 16%);
+//      box-shadow: none;
+//      background-color: #000000;
+//      color: #ffffff;
+//
+//      &:hover {
+//        background-color: #101010;
+//      }
+//
+//      .detail {
+//        border-color: #333333AA;
+//        .detail-item-list {
+//          .detail-item {
+//            .name {
+//              color: #999999;
+//            }
+//          }
+//        }
+//      }
+//    }
+//  }
+//
+//}
 
 @media screen and (max-width: 768px) {
   .monitor-item {
-    &>div {
+    & > div {
       margin-bottom: 10px;
     }
   }
@@ -931,10 +1060,11 @@ body[arco-theme='dark'] {
   .detail {
     .detail-item {
       .name {
-        width: 25%!important;
+        width: 25% !important;
       }
+
       .value {
-        width: 75%!important;
+        width: 75% !important;
       }
     }
   }
