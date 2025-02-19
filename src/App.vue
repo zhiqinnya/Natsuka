@@ -313,300 +313,304 @@ const handleEditClose = () => {
   <n-config-provider :theme="theme">
     <n-message-provider>
       <the-message />
-      <n-layout :native-scrollbar="false" style="height: 100dvh; padding-inline: 0.75rem">
-        <div class="max-container">
-          <div class="header">
-            <n-el class="logo">
-              <img class="icon" src="/favicon.ico" alt="" />
-              <n-text style="font-weight: 400; opacity: 0.8">LoCyanFrp｜节点服务器监控</n-text>
-            </n-el>
-            <!--      <a-button class="theme-btn" :shape="'round'" @click="handleChangeDark">-->
-            <!--        <template #icon>-->
-            <!--          <icon-sun-fill v-if="!dark" />-->
-            <!--          <icon-moon-fill v-else />-->
-            <!--        </template>-->
-            <!--      </a-button>-->
-          </div>
-          <div class="area-tabs">
-            <n-button
-              class="area-tab-item"
-              :type="selectArea === 'all' ? 'success' : ''"
-              :class="selectArea === 'all' ? 'is-active' : ''"
-              @click="handleSelectArea('all')"
-            >
-              全部地区
-            </n-button>
-            <n-button
-              class="area-tab-item"
-              :type="selectArea === item ? 'success' : ''"
-              :class="selectArea === item ? 'is-active' : ''"
-              v-for="item in area"
-              :key="item"
-              @click="handleSelectArea(item)"
-            >
-              <span
-                :class="`flag-icon flag-icon-${item.replace('UK', 'GB').toLowerCase()}`"
-                style="margin-right: 3px"
-              ></span>
-              {{ item }}
-            </n-button>
-          </div>
-          <StatsCard :type="type" :stats="stats" @handleChangeType="handleChangeType" />
-          <n-divider />
-          <div class="monitor-card">
-            <n-card
-              hoverable
-              class="monitor-item"
-              :class="selectHost === item.Host.Name ? 'is-active' : ''"
-              v-for="(item, index) in hosts"
-              @click="handleSelectHost(item.Host.Name)"
-              :key="index"
-            >
-              <div class="name">
-                <div class="title">
-                  <span
-                    :class="`flag-icon flag-icon-${item.Host.Name.slice(0, 2).replace('UK', 'GB').toLowerCase()}`"
-                  ></span>
-                  {{ item.Host.Name }}
+      <n-layout :native-scrollbar="false" style="height: 100dvh">
+        <n-el class="max-container">
+          <n-el style="padding-inline: 0.75rem">
+            <div class="header">
+              <n-el class="logo">
+                <img class="icon" src="/favicon.ico" alt="" />
+                <n-text style="font-weight: 400; opacity: 0.8">LoCyanFrp｜节点服务器监控</n-text>
+              </n-el>
+              <!--      <a-button class="theme-btn" :shape="'round'" @click="handleChangeDark">-->
+              <!--        <template #icon>-->
+              <!--          <icon-sun-fill v-if="!dark" />-->
+              <!--          <icon-moon-fill v-else />-->
+              <!--        </template>-->
+              <!--      </a-button>-->
+            </div>
+            <div class="area-tabs">
+              <n-button
+                class="area-tab-item"
+                :type="selectArea === 'all' ? 'success' : ''"
+                :class="selectArea === 'all' ? 'is-active' : ''"
+                @click="handleSelectArea('all')"
+              >
+                全部地区
+              </n-button>
+              <n-button
+                class="area-tab-item"
+                :type="selectArea === item ? 'success' : ''"
+                :class="selectArea === item ? 'is-active' : ''"
+                v-for="item in area"
+                :key="item"
+                @click="handleSelectArea(item)"
+              >
+                <span
+                  :class="`flag-icon flag-icon-${item.replace('UK', 'GB').toLowerCase()}`"
+                  style="margin-right: 3px"
+                ></span>
+                {{ item }}
+              </n-button>
+            </div>
+            <StatsCard :type="type" :stats="stats" @handleChangeType="handleChangeType" />
+            <n-divider />
+            <div class="monitor-card">
+              <n-card
+                hoverable
+                class="monitor-item"
+                :class="selectHost === item.Host.Name ? 'is-active' : ''"
+                v-for="(item, index) in hosts"
+                @click="handleSelectHost(item.Host.Name)"
+                :key="index"
+              >
+                <div class="name">
+                  <div class="title">
+                    <span
+                      :class="`flag-icon flag-icon-${item.Host.Name.slice(0, 2).replace('UK', 'GB').toLowerCase()}`"
+                    ></span>
+                    {{ item.Host.Name }}
+                  </div>
+                  <div class="status" :class="item.status ? 'online' : 'offline'">
+                    <span>{{ item.status ? '在线' : '离线' }}</span>
+                    <span style="margin-left: 6px">{{ formatUptime(item.State.Uptime) }}</span>
+                  </div>
                 </div>
-                <div class="status" :class="item.status ? 'online' : 'offline'">
-                  <span>{{ item.status ? '在线' : '离线' }}</span>
-                  <span style="margin-left: 6px">{{ formatUptime(item.State.Uptime) }}</span>
+                <div class="platform">
+                  <div class="monitor-item-title">系统</div>
+                  <div class="monitor-item-value">
+                    {{ item.Host.Platform }} {{ item.Host.PlatformVersion }}
+                  </div>
                 </div>
-              </div>
-              <div class="platform">
-                <div class="monitor-item-title">系统</div>
-                <div class="monitor-item-value">
-                  {{ item.Host.Platform }} {{ item.Host.PlatformVersion }}
+                <div class="cpu">
+                  <div class="monitor-item-title">CPU</div>
+                  <div class="monitor-item-value">{{ item.State.CPU.toFixed(2) + '%' }}</div>
+                  <a-progress
+                    class="monitor-item-progress"
+                    :status="progressStatus(item.State.CPU)"
+                    :percent="item.State.CPU / 100"
+                    :show-text="false"
+                    style="width: 60px"
+                  />
                 </div>
-              </div>
-              <div class="cpu">
-                <div class="monitor-item-title">CPU</div>
-                <div class="monitor-item-value">{{ item.State.CPU.toFixed(2) + '%' }}</div>
-                <a-progress
-                  class="monitor-item-progress"
-                  :status="progressStatus(item.State.CPU)"
-                  :percent="item.State.CPU / 100"
-                  :show-text="false"
-                  style="width: 60px"
-                />
-              </div>
-              <div class="mem">
-                <div class="monitor-item-title">内存使用情况</div>
-                <div class="monitor-item-value">
-                  {{ ((item.State.MemUsed / item.Host.MemTotal) * 100).toFixed(2) + '%' }}
+                <div class="mem">
+                  <div class="monitor-item-title">内存使用情况</div>
+                  <div class="monitor-item-value">
+                    {{ ((item.State.MemUsed / item.Host.MemTotal) * 100).toFixed(2) + '%' }}
+                  </div>
+                  <a-progress
+                    class="monitor-item-progress"
+                    :status="progressStatus((item.State.MemUsed / item.Host.MemTotal) * 100)"
+                    :percent="item.State.MemUsed / item.Host.MemTotal"
+                    :show-text="false"
+                    style="width: 60px"
+                  />
                 </div>
-                <a-progress
-                  class="monitor-item-progress"
-                  :status="progressStatus((item.State.MemUsed / item.Host.MemTotal) * 100)"
-                  :percent="item.State.MemUsed / item.Host.MemTotal"
-                  :show-text="false"
-                  style="width: 60px"
-                />
-              </div>
-              <div class="network">
-                <div class="monitor-item-title">网络速度（IN|OUT）</div>
-                <div class="monitor-item-value">
-                  {{
-                    `${formatBytes(item.State.NetInSpeed)}/s | ${formatBytes(item.State.NetOutSpeed)}/s`
-                  }}
+                <div class="network">
+                  <div class="monitor-item-title">网络速度（IN|OUT）</div>
+                  <div class="monitor-item-value">
+                    {{
+                      `${formatBytes(item.State.NetInSpeed)}/s | ${formatBytes(item.State.NetOutSpeed)}/s`
+                    }}
+                  </div>
                 </div>
-              </div>
-              <div class="average">
-                <div class="monitor-item-title">负载平均值(1|5|15)</div>
-                <div class="monitor-item-value">
-                  {{ `${item.State.Load1} | ${item.State.Load5} | ${item.State.Load15}` }}
+                <div class="average">
+                  <div class="monitor-item-title">负载平均值(1|5|15)</div>
+                  <div class="monitor-item-value">
+                    {{ `${item.State.Load1} | ${item.State.Load5} | ${item.State.Load15}` }}
+                  </div>
                 </div>
-              </div>
-              <div class="uptime" style="width: 120px">
-                <div class="monitor-item-title">剩余时间</div>
-                <div class="monitor-item-value">
-                  {{
-                    hostInfo[item.Host.Name]
-                      ? calculateRemainingDays(hostInfo[item.Host.Name].due_time)
-                      : '-'
-                  }}
+                <div class="uptime" style="width: 120px">
+                  <div class="monitor-item-title">剩余时间</div>
+                  <div class="monitor-item-value">
+                    {{
+                      hostInfo[item.Host.Name]
+                        ? calculateRemainingDays(hostInfo[item.Host.Name].due_time)
+                        : '-'
+                    }}
+                  </div>
                 </div>
-              </div>
-              <div class="uptime">
-                <div class="monitor-item-title">上报时间</div>
-                <div class="monitor-item-value">{{ formatTimeStamp(item.TimeStamp) }}</div>
-              </div>
-              <template #action class="detail" v-if="selectHost === item.Host.Name">
-                <a-row>
-                  <a-col :span="10" :xs="24" :sm="24" :md="10" :lg="10" :sl="10">
-                    <div class="detail-item-list">
-                      <div class="detail-item">
-                        <n-text class="name">主机名</n-text>
-                        <n-text class="value">{{ item.Host.Name }}</n-text>
-                      </div>
-                      <div class="detail-item">
-                        <n-text class="name">地区</n-text>
-                        <n-text class="value">
-                          <span
-                            :class="`flag-icon flag-icon-${item.Host.Name.slice(0, 2).replace('UK', 'GB').toLowerCase()}`"
-                          ></span>
-                          {{ item.Host.Name.slice(0, 2).toUpperCase() }}
-                        </n-text>
-                      </div>
-                      <div class="detail-item">
-                        <n-text class="name">系统</n-text>
-                        <n-text class="value"
-                          >{{ item.Host.Platform }} {{ item.Host.PlatformVersion }}</n-text
-                        >
-                      </div>
-                      <div class="detail-item">
-                        <n-text class="name">架构</n-text>
-                        <n-text class="value">{{ item.Host.Arch }}</n-text>
-                      </div>
-                      <div class="detail-item">
-                        <n-text class="name">虚拟化</n-text>
-                        <n-text class="value">{{ item.Host.Virtualization || '-' }}</n-text>
-                      </div>
-                      <div class="detail-item">
-                        <n-text class="name">CPU</n-text>
-                        <n-text class="value">{{ item.Host.CPU.join(',') }}</n-text>
-                      </div>
-                      <div class="detail-item">
-                        <n-text class="name">CPU占用</n-text>
-                        <n-text class="value">{{ item.State.CPU.toFixed(2) + '%' }}</n-text>
-                      </div>
-                      <div class="detail-item">
-                        <n-text class="name">内存使用情况</n-text>
-                        <n-text class="value"
-                          >{{
-                            ((item.State.MemUsed / item.Host.MemTotal) * 100).toFixed(2) + '%'
-                          }}
-                          ({{ formatBytes(item.State.MemUsed) }} /
-                          {{ formatBytes(item.Host.MemTotal) }})
-                        </n-text>
-                      </div>
-                      <div class="detail-item">
-                        <n-text class="name">虚拟内存(Swap)</n-text>
-                        <n-text class="value"
-                          >{{ formatBytes(item.State.SwapUsed) }} /
-                          {{ formatBytes(item.Host.SwapTotal) }}
-                        </n-text>
-                      </div>
-                      <div class="detail-item">
-                        <n-text class="name">网络速度（IN|OUT）</n-text>
-                        <n-text class="value">
-                          {{
-                            `${formatBytes(item.State.NetInSpeed)}/s | ${formatBytes(item.State.NetOutSpeed)}/s`
-                          }}
-                        </n-text>
-                      </div>
-                      <div class="detail-item">
-                        <n-text class="name">负载平均值(1|5|15)</n-text>
-                        <n-text class="value"
-                          >{{ `${item.State.Load1} | ${item.State.Load5} | ${item.State.Load15}` }}
-                        </n-text>
-                      </div>
-                      <div class="detail-item">
-                        <n-text class="name">流量使用↑|↓</n-text>
-                        <n-text class="value"
-                          >{{ formatBytes(item.State.NetOutTransfer) }} |
-                          {{ formatBytes(item.State.NetInTransfer) }}
-                        </n-text>
-                      </div>
-                      <div class="detail-item">
-                        <n-text class="name">开机时间</n-text>
-                        <n-text class="value">{{ formatTimeStamp(item.Host.BootTime) }}</n-text>
-                      </div>
-                      <div class="detail-item">
-                        <n-text class="name">上报时间</n-text>
-                        <n-text class="value">{{ formatTimeStamp(item.TimeStamp) }}</n-text>
-                      </div>
-                      <div
-                        class="detail-item"
-                        v-if="hostInfo[item.Host.Name] && hostInfo[item.Host.Name].seller"
-                      >
-                        <n-text class="name">商家名称</n-text>
-                        <n-text class="value">{{ hostInfo[item.Host.Name].seller }}</n-text>
-                      </div>
-                      <div
-                        class="detail-item"
-                        v-if="hostInfo[item.Host.Name] && hostInfo[item.Host.Name].price"
-                      >
-                        <n-text class="name">主机价格</n-text>
-                        <n-text class="value">{{ hostInfo[item.Host.Name].price }}</n-text>
-                      </div>
-                      <div
-                        class="detail-item"
-                        v-if="hostInfo[item.Host.Name] && hostInfo[item.Host.Name].due_time"
-                      >
-                        <n-text class="name">到期时间</n-text>
-                        <n-text class="value"
-                          >{{ moment(hostInfo[item.Host.Name].due_time).format('YYYY-MM-DD') }}
-                        </n-text>
-                      </div>
-                      <div
-                        class="detail-item"
-                        v-if="hostInfo[item.Host.Name] && hostInfo[item.Host.Name].buy_url"
-                      >
-                        <n-text class="name">购买链接</n-text>
-                        <n-text class="value">
-                          <a
-                            style="color: #0077ff"
-                            :href="hostInfo[item.Host.Name].buy_url"
-                            target="_blank"
-                            @click.stop="() => {}"
-                            >{{ hostInfo[item.Host.Name].buy_url }}</a
+                <div class="uptime">
+                  <div class="monitor-item-title">上报时间</div>
+                  <div class="monitor-item-value">{{ formatTimeStamp(item.TimeStamp) }}</div>
+                </div>
+                <template #action class="detail" v-if="selectHost === item.Host.Name">
+                  <a-row>
+                    <a-col :span="10" :xs="24" :sm="24" :md="10" :lg="10" :sl="10">
+                      <div class="detail-item-list">
+                        <div class="detail-item">
+                          <n-text class="name">主机名</n-text>
+                          <n-text class="value">{{ item.Host.Name }}</n-text>
+                        </div>
+                        <div class="detail-item">
+                          <n-text class="name">地区</n-text>
+                          <n-text class="value">
+                            <span
+                              :class="`flag-icon flag-icon-${item.Host.Name.slice(0, 2).replace('UK', 'GB').toLowerCase()}`"
+                            ></span>
+                            {{ item.Host.Name.slice(0, 2).toUpperCase() }}
+                          </n-text>
+                        </div>
+                        <div class="detail-item">
+                          <n-text class="name">系统</n-text>
+                          <n-text class="value"
+                            >{{ item.Host.Platform }} {{ item.Host.PlatformVersion }}</n-text
                           >
-                        </n-text>
+                        </div>
+                        <div class="detail-item">
+                          <n-text class="name">架构</n-text>
+                          <n-text class="value">{{ item.Host.Arch }}</n-text>
+                        </div>
+                        <div class="detail-item">
+                          <n-text class="name">虚拟化</n-text>
+                          <n-text class="value">{{ item.Host.Virtualization || '-' }}</n-text>
+                        </div>
+                        <div class="detail-item">
+                          <n-text class="name">CPU</n-text>
+                          <n-text class="value">{{ item.Host.CPU.join(',') }}</n-text>
+                        </div>
+                        <div class="detail-item">
+                          <n-text class="name">CPU占用</n-text>
+                          <n-text class="value">{{ item.State.CPU.toFixed(2) + '%' }}</n-text>
+                        </div>
+                        <div class="detail-item">
+                          <n-text class="name">内存使用情况</n-text>
+                          <n-text class="value"
+                            >{{
+                              ((item.State.MemUsed / item.Host.MemTotal) * 100).toFixed(2) + '%'
+                            }}
+                            ({{ formatBytes(item.State.MemUsed) }} /
+                            {{ formatBytes(item.Host.MemTotal) }})
+                          </n-text>
+                        </div>
+                        <div class="detail-item">
+                          <n-text class="name">虚拟内存(Swap)</n-text>
+                          <n-text class="value"
+                            >{{ formatBytes(item.State.SwapUsed) }} /
+                            {{ formatBytes(item.Host.SwapTotal) }}
+                          </n-text>
+                        </div>
+                        <div class="detail-item">
+                          <n-text class="name">网络速度（IN|OUT）</n-text>
+                          <n-text class="value">
+                            {{
+                              `${formatBytes(item.State.NetInSpeed)}/s | ${formatBytes(item.State.NetOutSpeed)}/s`
+                            }}
+                          </n-text>
+                        </div>
+                        <div class="detail-item">
+                          <n-text class="name">负载平均值(1|5|15)</n-text>
+                          <n-text class="value"
+                            >{{
+                              `${item.State.Load1} | ${item.State.Load5} | ${item.State.Load15}`
+                            }}
+                          </n-text>
+                        </div>
+                        <div class="detail-item">
+                          <n-text class="name">流量使用↑|↓</n-text>
+                          <n-text class="value"
+                            >{{ formatBytes(item.State.NetOutTransfer) }} |
+                            {{ formatBytes(item.State.NetInTransfer) }}
+                          </n-text>
+                        </div>
+                        <div class="detail-item">
+                          <n-text class="name">开机时间</n-text>
+                          <n-text class="value">{{ formatTimeStamp(item.Host.BootTime) }}</n-text>
+                        </div>
+                        <div class="detail-item">
+                          <n-text class="name">上报时间</n-text>
+                          <n-text class="value">{{ formatTimeStamp(item.TimeStamp) }}</n-text>
+                        </div>
+                        <div
+                          class="detail-item"
+                          v-if="hostInfo[item.Host.Name] && hostInfo[item.Host.Name].seller"
+                        >
+                          <n-text class="name">商家名称</n-text>
+                          <n-text class="value">{{ hostInfo[item.Host.Name].seller }}</n-text>
+                        </div>
+                        <div
+                          class="detail-item"
+                          v-if="hostInfo[item.Host.Name] && hostInfo[item.Host.Name].price"
+                        >
+                          <n-text class="name">主机价格</n-text>
+                          <n-text class="value">{{ hostInfo[item.Host.Name].price }}</n-text>
+                        </div>
+                        <div
+                          class="detail-item"
+                          v-if="hostInfo[item.Host.Name] && hostInfo[item.Host.Name].due_time"
+                        >
+                          <n-text class="name">到期时间</n-text>
+                          <n-text class="value"
+                            >{{ moment(hostInfo[item.Host.Name].due_time).format('YYYY-MM-DD') }}
+                          </n-text>
+                        </div>
+                        <div
+                          class="detail-item"
+                          v-if="hostInfo[item.Host.Name] && hostInfo[item.Host.Name].buy_url"
+                        >
+                          <n-text class="name">购买链接</n-text>
+                          <n-text class="value">
+                            <a
+                              style="color: #0077ff"
+                              :href="hostInfo[item.Host.Name].buy_url"
+                              target="_blank"
+                              @click.stop="() => {}"
+                              >{{ hostInfo[item.Host.Name].buy_url }}</a
+                            >
+                          </n-text>
+                        </div>
                       </div>
-                    </div>
-                  </a-col>
-                  <a-col :span="14" :xs="24" :sm="24" :md="14" :lg="14" :sl="14">
-                    <a-row :gutter="20">
-                      <a-col :span="12" :xs="24" :sm="24" :md="12" :lg="12" :sl="12">
-                        <div style="margin-bottom: 20px">
-                          <CPU ref="cpuRef" :data="charts[item.Host.Name].cpu" />
-                        </div>
-                      </a-col>
-                      <a-col :span="12" :xs="24" :sm="24" :md="12" :lg="12" :sl="12">
-                        <div style="margin-bottom: 20px">
-                          <Mem
-                            ref="memRef"
-                            :max="item.Host.MemTotal"
-                            :data="charts[item.Host.Name].mem"
-                          />
-                        </div>
-                      </a-col>
-                      <a-col :span="12" :xs="24" :sm="24" :md="12" :lg="12" :sl="12">
-                        <NetIn ref="netInRef" :data="charts[item.Host.Name].net_in" />
-                      </a-col>
-                      <a-col :span="12" :xs="24" :sm="24" :md="12" :lg="12" :sl="12">
-                        <NetOut ref="netOutRef" :data="charts[item.Host.Name].net_out" />
-                      </a-col>
-                    </a-row>
-                  </a-col>
-                </a-row>
-              </template>
-              <n-button
-                circle
-                type="info"
-                secondary
-                class="edit-btn"
-                @click.stop="handleShowEdit(item.Host.Name)"
-              >
-                <n-icon>
-                  <Edit />
-                </n-icon>
-              </n-button>
-              <n-button
-                circle
-                type="error"
-                secondary
-                class="delete-btn"
-                @click.stop="handleShowDelete(item.Host.Name)"
-              >
-                <n-icon>
-                  <Delete />
-                </n-icon>
-              </n-button>
-            </n-card>
-          </div>
+                    </a-col>
+                    <a-col :span="14" :xs="24" :sm="24" :md="14" :lg="14" :sl="14">
+                      <a-row :gutter="20">
+                        <a-col :span="12" :xs="24" :sm="24" :md="12" :lg="12" :sl="12">
+                          <div style="margin-bottom: 20px">
+                            <CPU ref="cpuRef" :data="charts[item.Host.Name].cpu" />
+                          </div>
+                        </a-col>
+                        <a-col :span="12" :xs="24" :sm="24" :md="12" :lg="12" :sl="12">
+                          <div style="margin-bottom: 20px">
+                            <Mem
+                              ref="memRef"
+                              :max="item.Host.MemTotal"
+                              :data="charts[item.Host.Name].mem"
+                            />
+                          </div>
+                        </a-col>
+                        <a-col :span="12" :xs="24" :sm="24" :md="12" :lg="12" :sl="12">
+                          <NetIn ref="netInRef" :data="charts[item.Host.Name].net_in" />
+                        </a-col>
+                        <a-col :span="12" :xs="24" :sm="24" :md="12" :lg="12" :sl="12">
+                          <NetOut ref="netOutRef" :data="charts[item.Host.Name].net_out" />
+                        </a-col>
+                      </a-row>
+                    </a-col>
+                  </a-row>
+                </template>
+                <n-button
+                  circle
+                  type="info"
+                  secondary
+                  class="edit-btn"
+                  @click.stop="handleShowEdit(item.Host.Name)"
+                >
+                  <n-icon>
+                    <Edit />
+                  </n-icon>
+                </n-button>
+                <n-button
+                  circle
+                  type="error"
+                  secondary
+                  class="delete-btn"
+                  @click.stop="handleShowDelete(item.Host.Name)"
+                >
+                  <n-icon>
+                    <Delete />
+                  </n-icon>
+                </n-button>
+              </n-card>
+            </div>
+          </n-el>
           <n-modal v-model:show="deleteVisible" style="width: 360px" preset="card" title="删除主机">
             <!--              <div class="akile-modal-title">-->
             <!--                <span>删除主机</span>-->
@@ -693,7 +697,7 @@ const handleEditClose = () => {
               <a target="_blank" href="https://github.com/LoCyan-Team/Natsuka"> Natsuka </a>
             </n-text>
           </div>
-        </div>
+        </n-el>
       </n-layout>
     </n-message-provider>
   </n-config-provider>
