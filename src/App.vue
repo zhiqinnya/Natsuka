@@ -37,11 +37,21 @@ const netInRef = ref(null)
 const netOutRef = ref(null)
 
 const host = computed(() => {
+  const result = data.value
+  result.sort((a, b) => {
+    if (a.Host.Name < b.Host.Name) {
+      return -1
+    }
+    if (a.Host.Name > b.Host.Name) {
+      return 1
+    }
+    return 0
+  })
   if (selectArea.value === 'all') {
-    return data.value
+    return result
   }
 
-  return data.value.filter((item) => item.Host.Name.slice(0, 2) === selectArea.value)
+  return result.filter((item) => item.Host.Name.slice(0, 2) === selectArea.value)
 })
 
 const hosts = computed(() => {
