@@ -1,7 +1,7 @@
 <script setup>
 import highcharts from 'highcharts'
 import moment from 'moment'
-import { onMounted, ref } from 'vue'
+import { onMounted, onUnmounted, ref } from 'vue'
 
 const props = defineProps({
   data: {
@@ -127,6 +127,10 @@ onMounted(() => {
   interval = setInterval(() => {
     updateOptions(props.data[props.data.length - 1])
   }, 1000)
+})
+
+onUnmounted(() => {
+  clearInterval(interval)
 })
 
 defineExpose({
