@@ -1,5 +1,6 @@
 <script setup>
 import { formatBandwithBytes, formatBytes } from '../utils/utils.js'
+import { ArrowUp, ArrowDown } from '@vicons/carbon'
 
 const emit = defineEmits(['handleChangeType'])
 
@@ -31,10 +32,10 @@ const { stats, type } = defineProps({
         :class="type === 'all' ? 'is-active' : ''"
         @click="emit('handleChangeType', 'all')"
       >
-        <div class="value">
+        <n-el class="value">
           <div class="status" style="background: #005fe7"></div>
           <span class="num">{{ stats.total }} 台</span>
-        </div>
+        </n-el>
       </n-card>
     </n-grid-item>
     <n-grid-item class="status-gi" span="3 800:1">
@@ -45,10 +46,10 @@ const { stats, type } = defineProps({
         :class="type === 'online' ? 'is-active' : ''"
         @click="emit('handleChangeType', 'online')"
       >
-        <div class="value">
+        <n-el class="value">
           <div class="status" style="background: #1fb416"></div>
           <span class="num">{{ stats.online }} 台</span>
-        </div>
+        </n-el>
       </n-card>
     </n-grid-item>
     <n-grid-item class="status-gi" span="3 800:1">
@@ -59,36 +60,48 @@ const { stats, type } = defineProps({
         :class="type === 'offline' ? 'is-active' : ''"
         @click="emit('handleChangeType', 'offline')"
       >
-        <div class="value">
+        <n-el class="value">
           <div class="status" style="background: #b41616"></div>
           <span class="num">{{ stats.offline }} 台</span>
-        </div>
+        </n-el>
       </n-card>
     </n-grid-item>
   </n-grid>
   <n-card title="网络情况">
-    <div class="value" style="display: block">
-      <div>
+    <n-el class="value" style="display: block">
+      <n-el>
         流量
-        <icon-arrow-up style="font-size: 14px; color: #d09453" />
+        <n-icon style="font-size: 14px">
+          <ArrowUp style="color: #d09453" />
+        </n-icon>
         <span style="font-size: 14px; color: #d09453"> {{ formatBytes(stats.traffic_up) }}</span>
         &nbsp;
-        <icon-arrow-down style="font-size: 14px; color: #9a5fcd" />
+        <n-icon style="font-size: 14px">
+          <ArrowDown style="color: #9a5fcd" />
+        </n-icon>
         <span style="font-size: 14px; color: #9a5fcd">{{ formatBytes(stats.traffic_down) }}</span>
-      </div>
-      <div>
+      </n-el>
+      <n-el>
         带宽
-        <icon-up-circle style="font-size: 14px" />
+        <n-icon style="font-size: 14px">
+          <ArrowUp />
+        </n-icon>
         <span style="font-size: 14px"> {{ formatBandwithBytes(stats.bandwidth_up) }}</span>
         &nbsp;
-        <icon-down-circle style="font-size: 14px" />
+        <n-icon style="font-size: 14px">
+          <ArrowDown />
+        </n-icon>
         <span style="font-size: 14px"> {{ formatBandwithBytes(stats.bandwidth_down) }}</span>
-      </div>
-    </div>
+      </n-el>
+    </n-el>
   </n-card>
 </template>
 
 <style scoped lang="scss">
+.n-icon {
+  transform: translateY(2px);
+}
+
 .status-gi:first-child {
   margin-left: 0;
 }

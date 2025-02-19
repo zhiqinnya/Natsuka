@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onMounted, provide, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import moment from 'moment'
 import CPU from '@/components/CPU.vue'
 import Mem from '@/components/Mem.vue'
@@ -12,6 +12,8 @@ import { calculateRemainingDays, formatBytes, formatTimeStamp, formatUptime } fr
 import { darkTheme, useOsTheme } from 'naive-ui'
 import TheMessage from '@/components/naive/TheMessage.vue'
 import Message from '@/utils/message.js'
+
+import { Edit, Delete } from '@vicons/carbon'
 
 const message = new Message()
 
@@ -251,7 +253,7 @@ const handleChangeType = (value) => {
 }
 
 const editHostName = ref('')
-const duetime = ref(0)
+const duetime = ref(null)
 const buy_url = ref('')
 const seller = ref('')
 const price = ref('')
@@ -261,7 +263,7 @@ const editVisible = ref(false)
 const handleShowEdit = (name) => {
   if (!hostInfo.value[name]) {
     editHostName.value = name
-    duetime.value = 0
+    duetime.value = null
     buy_url.value = ''
     seller.value = ''
     price.value = ''
@@ -315,7 +317,7 @@ const handleEditClose = () => {
         <div class="max-container">
           <div class="header">
             <n-el class="logo">
-              <img class="arco-icon" src="/favicon.ico" alt="" />
+              <img class="icon" src="/favicon.ico" alt="" />
               <n-text style="font-weight: 400; opacity: 0.8">LoCyanFrp｜节点服务器监控</n-text>
             </n-el>
             <!--      <a-button class="theme-btn" :shape="'round'" @click="handleChangeDark">-->
@@ -558,18 +560,18 @@ const handleEditClose = () => {
                   <a-col :span="14" :xs="24" :sm="24" :md="14" :lg="14" :sl="14">
                     <a-row :gutter="20">
                       <a-col :span="12" :xs="24" :sm="24" :md="12" :lg="12" :sl="12">
-                        <n-el style="margin-bottom: 20px">
+                        <div style="margin-bottom: 20px">
                           <CPU ref="cpuRef" :data="charts[item.Host.Name].cpu" />
-                        </n-el>
+                        </div>
                       </a-col>
                       <a-col :span="12" :xs="24" :sm="24" :md="12" :lg="12" :sl="12">
-                        <n-el style="margin-bottom: 20px">
+                        <div style="margin-bottom: 20px">
                           <Mem
                             ref="memRef"
                             :max="item.Host.MemTotal"
                             :data="charts[item.Host.Name].mem"
                           />
-                        </n-el>
+                        </div>
                       </a-col>
                       <a-col :span="12" :xs="24" :sm="24" :md="12" :lg="12" :sl="12">
                         <NetIn ref="netInRef" :data="charts[item.Host.Name].net_in" />
@@ -581,75 +583,102 @@ const handleEditClose = () => {
                   </a-col>
                 </a-row>
               </template>
-              <div class="edit-btn" @click.stop="handleShowEdit(item.Host.Name)">
-                <icon-edit />
-              </div>
-              <div class="delete-btn" @click.stop="handleShowDelete(item.Host.Name)">
-                <icon-delete />
-              </div>
+              <n-button
+                circle
+                type="info"
+                secondary
+                class="edit-btn"
+                @click.stop="handleShowEdit(item.Host.Name)"
+              >
+                <n-icon>
+                  <Edit />
+                </n-icon>
+              </n-button>
+              <n-button
+                circle
+                type="error"
+                secondary
+                class="delete-btn"
+                @click.stop="handleShowDelete(item.Host.Name)"
+              >
+                <n-icon>
+                  <Delete />
+                </n-icon>
+              </n-button>
             </n-card>
           </div>
-          <a-modal v-model:visible="deleteVisible" :footer="false" :hide-title="true" width="360px">
-            <div class="akile-modal-title">
-              <span>删除主机</span>
-              <a-button @click="handleClose">
-                <template #icon>
-                  <icon-close />
-                </template>
-              </a-button>
-            </div>
-            <div class="akile-modal-content">
-              <a-input-password
-                v-model="authSecret"
+          <n-modal v-model:show="deleteVisible" style="width: 360px" preset="card" title="删除主机">
+            <!--              <div class="akile-modal-title">-->
+            <!--                <span>删除主机</span>-->
+            <!--                <n-button @click="handleClose">-->
+            <!--                  <template #icon>-->
+            <!--                    <icon-close />-->
+            <!--                  </template>-->
+            <!--                </n-button>-->
+            <!--              </div>-->
+            <n-el class="akile-modal-content">
+              <n-input
+                type="password"
+                v-model:value="authSecret"
                 placeholder="请输入管理密钥"
-              ></a-input-password>
-              <div class="tips">提示：删除后无法恢复，请确定后再删除操作</div>
-            </div>
-            <div class="akile-modal-action">
-              <a-button type="primary" status="danger" :long="true" @click="handleDeleteHost"
-                >确认删除</a-button
-              >
-            </div>
-          </a-modal>
-          <a-modal v-model:visible="editVisible" :footer="false" :hide-title="true" width="360px">
-            <div class="akile-modal-title">
-              <span>编辑主机信息</span>
-              <a-button @click="handleEditClose">
-                <template #icon>
-                  <icon-close />
-                </template>
-              </a-button>
-            </div>
-            <div class="akile-modal-content">
-              <a-date-picker
-                v-model="duetime"
+              ></n-input>
+              <n-text class="tips">提示：删除后无法恢复，请确定后再删除操作</n-text>
+            </n-el>
+            <n-el class="akile-modal-action">
+              <n-button type="error" secondary style="width: 100%" @click="handleDeleteHost">
+                确认删除
+              </n-button>
+            </n-el>
+          </n-modal>
+          <n-modal
+            v-model:show="editVisible"
+            style="width: 360px"
+            preset="card"
+            title="编辑主机信息"
+          >
+            <!--              <div class="akile-modal-title">-->
+            <!--                <span></span>-->
+            <!--                <a-button @click="handleEditClose">-->
+            <!--                  <template #icon>-->
+            <!--                    <icon-close />-->
+            <!--                  </template>-->
+            <!--                </a-button>-->
+            <!--              </div>-->
+            <n-el class="akile-modal-content">
+              <n-date-picker
+                v-model:value="duetime"
+                type="datetime"
+                clearable
                 placeholder="请选择到期时间"
                 style="margin-bottom: 10px; width: 100%"
-              ></a-date-picker>
-              <a-input
-                v-model="seller"
+              ></n-date-picker>
+              <n-input
+                v-model:value="seller"
                 placeholder="请输入卖家"
                 style="margin-bottom: 10px"
-              ></a-input>
-              <a-input
-                v-model="price"
+              ></n-input>
+              <n-input
+                v-model:value="price"
                 placeholder="请输入价格"
                 style="margin-bottom: 10px"
-              ></a-input>
-              <a-input
-                v-model="buy_url"
+              ></n-input>
+              <n-input
+                v-model:value="buy_url"
                 placeholder="请输入购买链接"
                 style="margin-bottom: 10px"
-              ></a-input>
-              <a-input-password
-                v-model="authSecret"
+              ></n-input>
+              <n-input
+                type="password"
+                v-model:value="authSecret"
                 placeholder="请输入管理密钥"
-              ></a-input-password>
-            </div>
-            <div class="akile-modal-action">
-              <a-button type="primary" :long="true" @click="handleEditHost">更新信息</a-button>
-            </div>
-          </a-modal>
+              ></n-input>
+            </n-el>
+            <n-el class="akile-modal-action">
+              <n-button type="success" secondary style="width: 100%" @click="handleEditHost">
+                更新信息
+              </n-button>
+            </n-el>
+          </n-modal>
           <div class="footer">
             <n-text>Copyright © {{ new Date().getFullYear() }} LoCyanTeam.</n-text>
             <br />
@@ -779,15 +808,11 @@ a {
 
     .edit-btn {
       right: 60px !important;
-      background: rgba(22, 131, 255, 0.13) !important;
+      //background: rgba(22, 131, 255, 0.13) !important;
 
-      &:hover {
-        background: rgba(22, 131, 255, 0.19) !important;
-      }
-
-      .arco-icon {
-        color: #1673ff !important;
-      }
+      //&:hover {
+      //  background: rgba(22, 131, 255, 0.19) !important;
+      //}
     }
 
     .delete-btn,
@@ -796,8 +821,8 @@ a {
       right: 20px;
       top: calc(50% - 16px);
       cursor: pointer;
-      background: #ff161620;
-      border-radius: 100px;
+      //background: #ff161620;
+      //border-radius: 100px;
       width: 32px;
       height: 32px;
       display: none;
@@ -805,13 +830,9 @@ a {
       justify-content: center;
       transition: 0.15s background-color ease-in-out;
 
-      &:hover {
-        background: #ff161630;
-      }
-
-      .arco-icon {
-        color: #ff1616;
-      }
+      //&:hover {
+      //  background: #ff161630;
+      //}
     }
 
     .flag-icon {
@@ -959,7 +980,7 @@ a {
   display: flex;
   align-items: center;
 
-  .arco-icon {
+  .icon {
     margin-right: 5px;
     height: 28px;
     width: 28px;
