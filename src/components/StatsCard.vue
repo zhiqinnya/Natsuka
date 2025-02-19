@@ -1,8 +1,7 @@
 <script setup>
 import { formatBandwithBytes, formatBytes } from '../utils/utils.js'
-import { inject } from 'vue'
 
-const handleChangeType = inject('handleChangeType')
+const { handleChangeType } = defineEmits(['handleChangeType'])
 
 const { stats, type } = defineProps({
   stats: {
