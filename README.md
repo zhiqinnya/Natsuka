@@ -2,12 +2,14 @@
 
 一款 Akile Monitor 前端，基于 Naive UI 开发。
 
+![Natsuka Preview](./screenshot.jpeg)
+
 ## 安装
 
 ```bash
 git clone https://github.com/LoCyan-Team/Natsuka.git
 
-cd akile_monitor_fe
+cd Natsuka
 
 bun install
 ```
