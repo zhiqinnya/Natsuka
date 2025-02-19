@@ -294,8 +294,9 @@ const handleEditHost = async () => {
 
     message.success('更新成功')
 
-    editVisible.value = false
     await handleFetchHostInfo()
+
+    editVisible.value = false
   } catch (e) {
     message.error('更新失败，管理密钥错误')
   }
@@ -304,8 +305,6 @@ const handleEditHost = async () => {
 const handleEditClose = () => {
   editVisible.value = false
 }
-
-provide('handleChangeType', handleChangeType)
 </script>
 
 <template>

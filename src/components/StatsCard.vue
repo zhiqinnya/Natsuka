@@ -1,7 +1,7 @@
 <script setup>
 import { formatBandwithBytes, formatBytes } from '../utils/utils.js'
 
-const { handleChangeType } = defineEmits(['handleChangeType'])
+const emit = defineEmits(['handleChangeType'])
 
 const { stats, type } = defineProps({
   stats: {
@@ -29,7 +29,7 @@ const { stats, type } = defineProps({
         title="服务器总数"
         class="card-selector all"
         :class="type === 'all' ? 'is-active' : ''"
-        @click="handleChangeType('all')"
+        @click="emit('handleChangeType', 'all')"
       >
         <div class="value">
           <div class="status" style="background: #005fe7"></div>
@@ -43,7 +43,7 @@ const { stats, type } = defineProps({
         title="在线服务器"
         class="card-selector online"
         :class="type === 'online' ? 'is-active' : ''"
-        @click="handleChangeType('online')"
+        @click="emit('handleChangeType', 'online')"
       >
         <div class="value">
           <div class="status" style="background: #1fb416"></div>
@@ -57,7 +57,7 @@ const { stats, type } = defineProps({
         title="离线服务器"
         class="card-selector offline"
         :class="type === 'offline' ? 'is-active' : ''"
-        @click="handleChangeType('offline')"
+        @click="emit('handleChangeType', 'offline')"
       >
         <div class="value">
           <div class="status" style="background: #b41616"></div>
