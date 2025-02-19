@@ -435,8 +435,8 @@ const handleEditClose = () => {
                   <a-col :span="10" :xs="24" :sm="24" :md="10" :lg="10" :sl="10">
                     <div class="detail-item-list">
                       <div class="detail-item">
-                        <div class="name">主机名</div>
-                        <div class="value">{{ item.Host.Name }}</div>
+                        <n-text class="name">主机名</n-text>
+                        <n-text class="value">{{ item.Host.Name }}</n-text>
                       </div>
                       <div class="detail-item">
                         <n-text class="name">地区</n-text>
