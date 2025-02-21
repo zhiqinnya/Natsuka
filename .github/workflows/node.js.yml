@@ -30,7 +30,7 @@ jobs:
       run: ~/.bun/bin/bun install
 
     - name: Build project
-      run: ~/.bun/bin/bun run build src/main.js
+      run: ~/.bun/bin/bun run build
 
     - name: Upload build artifact
       uses: actions/upload-artifact@v4
