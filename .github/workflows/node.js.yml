@@ -20,9 +20,7 @@ jobs:
 
     - name: Install Bun
       run: |
-        curl https://bun.sh/install | bash
-        # 将 bun 添加到 PATH 中
-        echo "export PATH=$HOME/.bun/bin:$PATH" >> $GITHUB_PATH
+        curl https://bun.sh/install | bash -s -- -b /usr/local/bin
 
     - name: Verify Bun installation
       run: bun --version
