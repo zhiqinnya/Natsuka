@@ -1,37 +1,41 @@
 # This workflow will do a clean installation of node dependencies, cache/restore them, build the source code and run tests across different versions of node
 # For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-nodejs
 
-name: Node.js CI
+name: Build with Bun
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ main ]
   pull_request:
-    branches: [ "main" ]
+    branches: [ main ]
   workflow_dispatch:
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
 
-    strategy:
-      matrix:
-        node-version: [18.x, 20.x, 22.x]
-        # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
-
     steps:
-    - uses: actions/checkout@v4
-    - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v4
-      with:
-        node-version: ${{ matrix.node-version }}
-        cache: 'npm'
-    - run: bun ci
-    - run: bun run build --if-present
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Install Bun
+      run: |
+        curl https://bun.sh/install | bash
+        # 将 bun 添加到 PATH 中
+        echo "export PATH=$HOME/.bun/bin:$PATH" >> $GITHUB_PATH
+
+    - name: Verify Bun installation
+      run: bun --version
+
+    - name: Install dependencies
+      run: bun install
+
+    - name: Build project
+      run: bun build
 
     - name: Upload build artifact
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v4.6
       with:
-        name: akile_monitor_fe
-        path: dist/ # Replace with your actual binary file name
+        name: Natsuka
+        path: dist/
+      
