@@ -346,7 +346,7 @@ const handleEditClose = () => {
                 @click="handleSelectArea(item)"
               >
                 <span
-                  :class="`flag-icon flag-icon-${item.replace('UK', 'GB').toLowerCase()}`"
+                  :class="`flag-icon flag-icon-${item.replace('TW', 'CN').replace('UK', 'GB').toLowerCase()}`"
                   style="margin-right: 3px"
                 ></span>
                 {{ item }}
@@ -366,7 +366,7 @@ const handleEditClose = () => {
                 <div class="name">
                   <div class="title">
                     <span
-                      :class="`flag-icon flag-icon-${item.Host.Name.slice(0, 2).replace('UK', 'GB').toLowerCase()}`"
+                      :class="`flag-icon flag-icon-${item.Host.Name.slice(0, 2).replace('TW', 'CN').replace('UK', 'GB').toLowerCase()}`"
                     ></span>
                     {{ item.Host.Name }}
                   </div>
@@ -445,7 +445,7 @@ const handleEditClose = () => {
                           <n-text class="name">地区</n-text>
                           <n-text class="value">
                             <span
-                              :class="`flag-icon flag-icon-${item.Host.Name.slice(0, 2).replace('UK', 'GB').toLowerCase()}`"
+                              :class="`flag-icon flag-icon-${item.Host.Name.slice(0, 2).replace('TW', 'CN').replace('UK', 'GB').toLowerCase()}`"
                             ></span>
                             {{ item.Host.Name.slice(0, 2).toUpperCase() }}
                           </n-text>
